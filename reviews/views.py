@@ -3,7 +3,6 @@ from django.contrib.auth import login, authenticate
 from .forms import RegistrationForm, LoginForm
 
 
-# Create your views here.
 def register(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
@@ -13,7 +12,7 @@ def register(request):
             return redirect('/')
     else:
         form = RegistrationForm()
-    return render(request, 'registration/register.html', {'form': form})
+    return render(request, 'reviews/register.html', {'form': form})
 
 
 def login_view(request):
@@ -28,4 +27,4 @@ def login_view(request):
                 return redirect('/')
     else:
         form = LoginForm()
-    return render(request, 'registration/login.html', {'form': form})
+    return render(request, 'reviews/login.html', {'form': form})
