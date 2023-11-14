@@ -1,7 +1,8 @@
 from django.test import TestCase
-from reviews.models import Restaurant
+from django.contrib.auth import get_user_model
+from reviews.models import Restaurant, Review
 
-
+# Restaurant
 class RestaurantModelTest(TestCase):
     def setUp(self):
         self.restaurant = Restaurant.objects.create(
@@ -29,4 +30,36 @@ class RestaurantModelTest(TestCase):
         retrieved_restaurant = Restaurant.objects.get(name='New Restaurant')
 
         self.assertEqual(new_restaurant, retrieved_restaurant)
-        
+
+
+# Review
+class ReviewModelTest(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username='testuser',
+            email='testuser@example.com',
+            password='testpassword'
+        )
+
+        self.restaurant = Restaurant.objects.create(
+            name='Test Restaurant',
+            cuisine='european_cuisine',
+            address='123 Test Street, Test City'
+        )
+
+        self.review = Review.objects.create(
+            restaurant=self.restaurant,
+            customer=self.user,
+            rating='4',
+            pricing='moderate',
+            comment='This is a test review.'
+        )
+
+    def test_str_representation(self):
+        expected_str = f"{self.restaurant} - {self.user.username} - 4"
+        self.assertEqual(str(self.review), expected_str)
+
+    def test_default_values(self):
+        self.assertEqual(self.review.rating, '4')
+        self.assertEqual(self.review.pricing, 'moderate')
+        self.assertEqual(self.review.comment, 'This is a test review.')

@@ -51,4 +51,4 @@ class Review(models.Model):
     comment = models.TextField(max_length=500, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.restaurant} - {self.user_name} - {self.rating}"
+        return f"{self.restaurant} - {self.customer.username} - {self.rating}"
