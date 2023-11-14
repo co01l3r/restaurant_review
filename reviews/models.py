@@ -36,10 +36,18 @@ class Review(models.Model):
         (5, '5'),
     ]
 
+    PRICING_CATEGORY_OPTION: List[Tuple[str, str]] = [
+        ('cheap', 'Cheap'),
+        ('moderate', 'Moderate'),
+        ('high', 'High'),
+        ('overpriced', 'Overpriced'),
+    ]
+
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
     customer = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     rating = models.CharField(max_length=1, choices=RATINGS_OPTIONS, default=3)
+    pricing = models.CharField(max_length=30, choices=PRICING_CATEGORY_OPTION, default='moderate')
     comment = models.TextField(max_length=500, blank=True, null=True)
 
     def __str__(self):
