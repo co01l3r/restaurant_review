@@ -87,3 +87,8 @@ def delete_restaurant(request, restaurant_id):
 def restaurant_list(request):
     restaurants = Restaurant.objects.all()
     return render(request, 'reviews/restaurant_list.html', {'restaurants': restaurants})
+
+
+def restaurant_detail(request, restaurant_id):
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+    return render(request, 'reviews/restaurant_detail.html', {'restaurant': restaurant})

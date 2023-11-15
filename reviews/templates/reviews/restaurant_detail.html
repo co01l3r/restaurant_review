@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% extends 'main.html' %}
+    <meta charset="UTF-8">
+    <title>{{ restaurant.name }} Details</title>
+</head>
+<body>
+
+{% block content %}
+
+    <h2>{{ restaurant.name }}</h2>
+    <p>Address: {{ restaurant.address }}</p>
+    <p>Cuisine: {{ restaurant.get_cuisine_display }}</p>
+
+{% endblock content %}
+</body>
+</html>
