@@ -16,6 +16,11 @@
             <a href="{% url 'restaurant_detail' review.restaurant.id %}">{{ review.restaurant.name }}</a>
         -
             <a href="{% url 'create_review' review.restaurant.id %}">{{ review.rating }}</a>
+
+            {% if review.comment %}
+                -
+                <p>{{ review.comment }}</p>
+            {% endif %}
         </li>
     {% endfor %}
 </ul>
