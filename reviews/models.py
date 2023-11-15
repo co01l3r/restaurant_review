@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import Avg
+from collections import Counter
 
 
 class Customer(AbstractUser):
@@ -30,6 +31,33 @@ class Restaurant(models.Model):
     def average_rating(self):
         reviews = Review.objects.filter(restaurant=self)
         return reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+
+    def get_most_used_pricing(self):
+        pricing_counts = Counter(review.pricing for review in self.review_set.all())
+        most_used_pricing, second_most_used_pricing = pricing_counts.most_common(2)
+
+        # Function to determine sort key
+        def sort_key(pricing):
+            return (-pricing_counts[pricing], pricing)
+
+        # Check if there's a tie
+        if len(pricing_counts) > 1 and most_used_pricing[1] == second_most_used_pricing[1]:
+            tied_pricing = [pricing for pricing, count in pricing_counts.items() if count == most_used_pricing[1]]
+
+            # Specific tie scenarios
+            if {'cheap', 'high'}.issubset(tied_pricing):
+                return 'moderate'
+            elif {'cheap', 'moderate'}.issubset(tied_pricing):
+                return 'moderate'
+            elif {'moderate', 'overpriced'}.issubset(tied_pricing):
+                return 'high'
+
+            # If none of the specific tie scenarios, return the most used pricing
+            ordered_tied_pricing = sorted(tied_pricing, key=sort_key, reverse=True)
+            return ' - '.join(ordered_tied_pricing)
+
+        # If no tie, return the most used pricing
+        return most_used_pricing[0]
 
 
 class Review(models.Model):
