@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Reviews</title>
+</head>
+<body>
+{% extends 'main.html' %}
+
+{% block content %}
+
+<h2>Your Reviews</h2>
+<ul>
+    {% for review in user_reviews %}
+        <li>
+            <a href="{% url 'restaurant_detail' review.restaurant.id %}">{{ review.restaurant.name }}</a>
+        -
+            <a href="{% url 'create_review' review.restaurant.id %}">{{ review.rating }}</a>
+        </li>
+    {% endfor %}
+</ul>
+
+{% endblock content %}
+</body>
+</html>
