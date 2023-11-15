@@ -34,31 +34,33 @@ class Restaurant(models.Model):
 
     def get_most_used_pricing(self):
         pricing_counts = Counter(review.pricing for review in self.review_set.all())
-        most_used_pricing = pricing_counts.most_common(1)
+        most_used_pricing, *_ = pricing_counts.most_common(2)
 
         # Function to determine sort key
         def sort_key(pricing):
             return (-pricing_counts[pricing], pricing)
 
         # Check if there's a tie or only one pricing option
-        if most_used_pricing and len(pricing_counts) > 1 and most_used_pricing[0][1] == \
-                pricing_counts.most_common(2)[1][1]:
-            tied_pricing = [pricing for pricing, count in pricing_counts.items() if count == most_used_pricing[0][1]]
+        if most_used_pricing and len(pricing_counts) > 1 and most_used_pricing[1] == pricing_counts.most_common(2)[1][1]:
+            tied_pricing = [pricing for pricing, count in pricing_counts.items() if count == most_used_pricing[1]]
 
             # Specific tie scenarios
-            if {'cheap', 'high'}.issubset(tied_pricing):
-                return 'moderate'
-            elif {'cheap', 'moderate'}.issubset(tied_pricing):
-                return 'moderate'
-            elif {'moderate', 'overpriced'}.issubset(tied_pricing):
-                return 'high'
+            tie_scenarios = [
+                (['cheap', 'high'], 'moderate'),
+                (['cheap', 'moderate'], 'moderate'),
+                (['moderate', 'overpriced'], 'high')
+            ]
+
+            for pricings, result in tie_scenarios:
+                if set(pricings).issubset(tied_pricing):
+                    return result
 
             # If none of the specific tie scenarios, return the most used pricing
             ordered_tied_pricing = sorted(tied_pricing, key=sort_key, reverse=True)
             return ' - '.join(ordered_tied_pricing)
 
         # If no tie or only one pricing option, return the most used pricing
-        return most_used_pricing[0][0] if most_used_pricing else None
+        return most_used_pricing[0] if most_used_pricing else None
 
 
 class Review(models.Model):
@@ -81,7 +83,7 @@ class Review(models.Model):
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
     customer = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
-    rating = models.IntegerField(max_length=1, choices=RATINGS_OPTIONS, default=3)
+    rating = models.IntegerField(choices=RATINGS_OPTIONS, default=3)
     pricing = models.CharField(max_length=30, choices=PRICING_CATEGORY_OPTION, default='moderate')
     comment = models.TextField(max_length=500, blank=True, null=True)
 
