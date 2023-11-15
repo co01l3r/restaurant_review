@@ -117,6 +117,6 @@ def create_review(request, restaurant_id):
 
 @login_required
 def user_reviews(request):
-    user_reviews = Review.objects.filter(customer=request.user)
-    return render(request, 'reviews/user_reviews.html', {'user_reviews': user_reviews})
+    personal_reviews = Review.objects.filter(customer=request.user)
+    return render(request, 'reviews/user_reviews.html', {'user_reviews': personal_reviews})
 
