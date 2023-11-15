@@ -47,9 +47,12 @@ class Review(models.Model):
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
     customer = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
-    rating = models.CharField(max_length=1, choices=RATINGS_OPTIONS, default=3)
+    rating = models.IntegerField(max_length=1, choices=RATINGS_OPTIONS, default=3)
     pricing = models.CharField(max_length=30, choices=PRICING_CATEGORY_OPTION, default='moderate')
     comment = models.TextField(max_length=500, blank=True, null=True)
+
+    class Meta:
+        unique_together = ['restaurant', 'customer']
 
     def __str__(self):
         return f"{self.restaurant} - {self.customer.username} - {self.rating}"

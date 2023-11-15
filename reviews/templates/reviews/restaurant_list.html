@@ -14,7 +14,7 @@
             <li>
                 <a href="{% url 'restaurant_detail' restaurant.id %}">{{ restaurant.name }}</a>
                 {% if user.is_authenticated and user == restaurant.created_by %}
-                    - <a href="{% url 'edit_restaurant' restaurant.id %}">Edit</a> <a href="{% url 'delete_restaurant' restaurant.id %}">Delete</a>
+                    - <a href="{% url 'edit_restaurant' restaurant.id %}">Edit</a> <a href="{% url 'delete_restaurant' restaurant.id %}">Delete</a> <a href="{% url 'create_review' restaurant.id %}">Create Review</a>
                 {% endif %}
             </li>
         {% endfor %}

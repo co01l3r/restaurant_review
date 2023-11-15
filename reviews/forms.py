@@ -1,9 +1,10 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import Restaurant
+from .models import Restaurant, Review
 
 
+# user
 class RegistrationForm(UserCreationForm):
     class Meta:
         model = get_user_model()
@@ -15,7 +16,15 @@ class LoginForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput)
 
 
+# restaurant
 class RestaurantForm(forms.ModelForm):
     class Meta:
         model = Restaurant
         fields = ['name', 'cuisine', 'address']
+
+
+# review
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['rating', 'pricing', 'comment']

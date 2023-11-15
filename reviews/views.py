@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
-from .forms import RegistrationForm, LoginForm, RestaurantForm
-from .models import Restaurant
+from .forms import RegistrationForm, LoginForm, RestaurantForm, ReviewForm
+from .models import Restaurant, Review
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 
@@ -92,3 +92,23 @@ def restaurant_list(request):
 def restaurant_detail(request, restaurant_id):
     restaurant = get_object_or_404(Restaurant, id=restaurant_id)
     return render(request, 'reviews/restaurant_detail.html', {'restaurant': restaurant})
+
+
+# review
+@login_required
+def create_review(request, restaurant_id):
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+    user_review = Review.objects.filter(restaurant=restaurant, customer=request.user).first()
+
+    if request.method == 'POST':
+        form = ReviewForm(request.POST, instance=user_review)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.customer = request.user
+            review.restaurant = restaurant
+            review.save()
+            return redirect('restaurant_detail', restaurant_id=restaurant.id)
+    else:
+        form = ReviewForm(instance=user_review)
+
+    return render(request, 'reviews/create_review.html', {'restaurant': restaurant, 'form': form})
