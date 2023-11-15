@@ -1,6 +1,17 @@
 from django.contrib.auth.views import LogoutView
 from django.urls import path
-from .views import register, login_view, add_restaurant, edit_restaurant, restaurant_list, delete_restaurant, restaurant_detail, create_review, user_reviews
+
+from .views import (
+    register,
+    login_view,
+    add_restaurant,
+    edit_restaurant,
+    restaurant_list,
+    delete_restaurant,
+    restaurant_detail,
+    create_review,
+    user_reviews,
+)
 
 urlpatterns = [
     path('', register, name='home'),
