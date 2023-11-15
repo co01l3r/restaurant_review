@@ -63,7 +63,7 @@ def edit_restaurant(request, restaurant_id):
         form = RestaurantForm(request.POST, instance=restaurant)
         if form.is_valid():
             form.save()
-            return redirect('/')
+            return redirect('restaurant_list')
     else:
         form = RestaurantForm(instance=restaurant)
 
