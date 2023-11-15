@@ -9,6 +9,6 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
     path('add-restaurant/', add_restaurant, name='add_restaurant'),
     path('edit-restaurant/<int:restaurant_id>/', add_restaurant, name='edit_restaurant'),
-    path('delete-restaurant/<int:restaurant_id>/', delete_restaurant, name='delete_restaurant'),
+    path('delete-confirmation/<int:restaurant_id>/', delete_restaurant, name='delete_restaurant'),
     path('restaurant-list/', restaurant_list, name='restaurant_list'),
 ]
