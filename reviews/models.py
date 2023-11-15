@@ -34,15 +34,16 @@ class Restaurant(models.Model):
 
     def get_most_used_pricing(self):
         pricing_counts = Counter(review.pricing for review in self.review_set.all())
-        most_used_pricing, *_ = pricing_counts.most_common(2)
+        most_used_pricing = pricing_counts.most_common(1)
 
         # Function to determine sort key
         def sort_key(pricing):
             return (-pricing_counts[pricing], pricing)
 
         # Check if there's a tie or only one pricing option
-        if len(pricing_counts) > 1 and most_used_pricing[1] == pricing_counts.most_common(2)[1][1]:
-            tied_pricing = [pricing for pricing, count in pricing_counts.items() if count == most_used_pricing[1]]
+        if most_used_pricing and len(pricing_counts) > 1 and most_used_pricing[0][1] == \
+                pricing_counts.most_common(2)[1][1]:
+            tied_pricing = [pricing for pricing, count in pricing_counts.items() if count == most_used_pricing[0][1]]
 
             # Specific tie scenarios
             if {'cheap', 'high'}.issubset(tied_pricing):
@@ -57,7 +58,7 @@ class Restaurant(models.Model):
             return ' - '.join(ordered_tied_pricing)
 
         # If no tie or only one pricing option, return the most used pricing
-        return most_used_pricing[0]
+        return most_used_pricing[0][0] if most_used_pricing else None
 
 
 class Review(models.Model):
