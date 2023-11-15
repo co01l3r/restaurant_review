@@ -21,6 +21,7 @@ class Restaurant(models.Model):
     name = models.CharField(max_length=100)
     cuisine = models.CharField(max_length=50, choices=RESTAURANT_TYPE_OPTIONS, default='european_cuisine')
     address = models.TextField(max_length=200)
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
