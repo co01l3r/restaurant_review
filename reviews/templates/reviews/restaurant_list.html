@@ -9,16 +9,21 @@
 {% block content %}
 
     <h2>All Restaurants</h2>
-    <ul>
-        {% for restaurant in restaurants %}
-            <li>
-                <a href="{% url 'restaurant_detail' restaurant.id %}">{{ restaurant.name }}</a>
-                {% if user.is_authenticated and user == restaurant.created_by %}
-                    - <a href="{% url 'edit_restaurant' restaurant.id %}">Edit</a> <a href="{% url 'delete_restaurant' restaurant.id %}">Delete</a> <a href="{% url 'create_review' restaurant.id %}">Create Review</a>
+<ul>
+    {% for restaurant in restaurants %}
+        <li>
+            <a href="{% url 'restaurant_detail' restaurant.id %}">{{ restaurant.name }}</a>
+        -
+            {% if user.is_authenticated %}
+                <a href="{% url 'create_review' restaurant.id %}">Create Review</a>
+                {% if user == restaurant.created_by %}
+                    - <a href="{% url 'edit_restaurant' restaurant.id %}">Edit</a>
+                      <a href="{% url 'delete_restaurant' restaurant.id %}">Delete</a>
                 {% endif %}
-            </li>
-        {% endfor %}
-    </ul>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>
 
 {% endblock content %}
 </body>

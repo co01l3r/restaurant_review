@@ -2,6 +2,7 @@ from typing import List, Tuple
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Avg
 
 
 class Customer(AbstractUser):
@@ -25,6 +26,10 @@ class Restaurant(models.Model):
 
     def __str__(self):
         return self.name
+
+    def average_rating(self):
+        reviews = Review.objects.filter(restaurant=self)
+        return reviews.aggregate(Avg('rating'))['rating__avg'] or 0
 
 
 class Review(models.Model):
