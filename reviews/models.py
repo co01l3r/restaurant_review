@@ -28,6 +28,21 @@ class Customer(AbstractUser):
 
         return visit_counts
 
+    @property
+    def total_spending_for_restaurants(self):
+        total_spending = {}
+
+        # Get all visits for the user
+        user_visits = Visit.objects.filter(customer=self)
+
+        # Calculate total spending for each restaurant
+        for visit in user_visits:
+            if visit.restaurant:
+                restaurant_name = visit.restaurant.name
+                total_spending[restaurant_name] = total_spending.get(restaurant_name, 0) + visit.spending
+
+        return total_spending
+
 
 class Restaurant(models.Model):
 
