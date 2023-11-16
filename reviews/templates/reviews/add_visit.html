@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Visit</title>
+</head>
+<body>
+{% extends 'main.html' %}
+
+{% block content %}
+
+  <h1>Add Visit</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Save">
+  </form>
+
+{% endblock %}
+</body>
+</html>

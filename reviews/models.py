@@ -93,3 +93,13 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.restaurant} - {self.customer.username} - {self.rating}"
+
+
+class Visit(models.Model):
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
+    customer = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    date = models.DateField()
+    spending = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.customer.username} - {self.restaurant.name} - {self.date}"

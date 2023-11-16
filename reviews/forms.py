@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 
-from .models import Restaurant, Review
+from .models import Restaurant, Review, Visit
 
 
 # user
@@ -29,3 +29,13 @@ class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review
         fields = ['rating', 'pricing', 'comment']
+
+
+# visit
+class VisitForm(forms.ModelForm):
+    class Meta:
+        model = Visit
+        fields = ['date', 'spending']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+        }

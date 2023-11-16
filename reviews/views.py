@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import RegistrationForm, LoginForm, RestaurantForm, ReviewForm
+from .forms import RegistrationForm, LoginForm, RestaurantForm, ReviewForm, VisitForm
 from .models import Restaurant, Review
 
 
@@ -119,4 +119,21 @@ def create_review(request, restaurant_id):
 def user_reviews(request):
     personal_reviews = Review.objects.filter(customer=request.user)
     return render(request, 'reviews/user_reviews.html', {'user_reviews': personal_reviews})
+
+
+# visit
+@login_required
+def add_visit(request, restaurant_id):
+    if request.method == 'POST':
+        form = VisitForm(request.POST)
+        if form.is_valid():
+            visit = form.save(commit=False)
+            visit.restaurant_id = restaurant_id
+            visit.customer = request.user
+            visit.save()
+            return redirect('restaurant_detail', restaurant_id=restaurant_id)
+    else:
+        form = VisitForm()
+
+    return render(request, 'reviews/add_visit.html', {'form': form})
 

@@ -11,6 +11,7 @@ from .views import (
     restaurant_detail,
     create_review,
     user_reviews,
+    add_visit,
 )
 
 urlpatterns = [
@@ -19,12 +20,14 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
 
-    path('add-restaurant/', add_restaurant, name='add_restaurant'),
-    path('edit-restaurant/<int:restaurant_id>/', edit_restaurant, name='edit_restaurant'),
-    path('delete-confirmation/<int:restaurant_id>/', delete_restaurant, name='delete_restaurant'),
-    path('restaurant-list/', restaurant_list, name='restaurant_list'),
-    path('restaurant_detail/<int:restaurant_id>/', restaurant_detail, name='restaurant_detail'),
+    path('restaurants/add/', add_restaurant, name='add_restaurant'),
+    path('restaurants/edit/<int:restaurant_id>/', edit_restaurant, name='edit_restaurant'),
+    path('restaurants/delete/<int:restaurant_id>/', delete_restaurant, name='delete_restaurant'),
+    path('restaurants/', restaurant_list, name='restaurant_list'),
+    path('restaurants/<int:restaurant_id>/', restaurant_detail, name='restaurant_detail'),
 
-    path('create-review/<int:restaurant_id>/', create_review, name='create_review'),
+    path('restaurants/<int:restaurant_id>/reviews/create/', create_review, name='create_review'),
     path('user-reviews/', user_reviews, name='user_reviews'),
+
+    path('restaurants/<int:restaurant_id>/visits/add/', add_visit, name='add_visit'),
 ]

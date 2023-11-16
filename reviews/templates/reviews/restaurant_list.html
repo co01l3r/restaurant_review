@@ -16,6 +16,7 @@
         -
             {% if user.is_authenticated %}
                 <a href="{% url 'create_review' restaurant.id %}">Create Review</a>
+                <a href="{% url 'add_visit' restaurant.id %}">Add Visit</a>
                 {% if user == restaurant.created_by %}
                     - <a href="{% url 'edit_restaurant' restaurant.id %}">Edit</a>
                       <a href="{% url 'delete_restaurant' restaurant.id %}">Delete</a>
