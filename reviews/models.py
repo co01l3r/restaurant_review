@@ -6,6 +6,9 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import Avg
 
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
+
 
 class Customer(AbstractUser):
     pass
@@ -38,33 +41,40 @@ class Restaurant(models.Model):
 
     def get_restaurant_pricing_category_eval(self):
         pricing_counts = Counter(review.pricing for review in self.review_set.all())
-        most_used_pricing, *_ = pricing_counts.most_common(2)
 
-        # Function to determine sort key
-        def sort_key(pricing):
-            return (-pricing_counts[pricing], pricing)
+        # Check if pricing_counts is not empty
+        if pricing_counts:
+            most_used_pricing, *_ = pricing_counts.most_common(2)
 
-        # Check if there's a tie or only one pricing option
-        if most_used_pricing and len(pricing_counts) > 1 and most_used_pricing[1] == pricing_counts.most_common(2)[1][1]:
-            tied_pricing = [pricing for pricing, count in pricing_counts.items() if count == most_used_pricing[1]]
+            # Function to determine sort key
+            def sort_key(pricing):
+                return (-pricing_counts[pricing], pricing)
 
-            # Specific tie scenarios
-            tie_scenarios = [
-                (['cheap', 'high'], 'moderate'),
-                (['cheap', 'overpriced'], 'moderate'),
-                (['moderate', 'overpriced'], 'high')
-            ]
+            # Check if there's a tie or only one pricing option
+            if most_used_pricing and len(pricing_counts) > 1 and most_used_pricing[1] == \
+                    pricing_counts.most_common(2)[1][1]:
+                tied_pricing = [pricing for pricing, count in pricing_counts.items() if count == most_used_pricing[1]]
 
-            for pricings, result in tie_scenarios:
-                if set(pricings).issubset(tied_pricing):
-                    return result
+                # Specific tie scenarios
+                tie_scenarios = [
+                    (['cheap', 'high'], 'moderate'),
+                    (['cheap', 'overpriced'], 'moderate'),
+                    (['moderate', 'overpriced'], 'high')
+                ]
 
-            # If none of the specific tie scenarios, return the most used pricing
-            ordered_tied_pricing = sorted(tied_pricing, key=sort_key, reverse=True)
-            return ' - '.join(ordered_tied_pricing)
+                for pricings, result in tie_scenarios:
+                    if set(pricings).issubset(tied_pricing):
+                        return result
 
-        # If no tie or only one pricing option, return the most used pricing
-        return most_used_pricing[0] if most_used_pricing else None
+                # If none of the specific tie scenarios, return the most used pricing
+                ordered_tied_pricing = sorted(tied_pricing, key=sort_key, reverse=True)
+                return ' - '.join(ordered_tied_pricing)
+
+            # If no tie or only one pricing option, return the most used pricing
+            return most_used_pricing[0] if most_used_pricing else None
+
+        # Return a default value if pricing_counts is empty
+        return None
 
 
 class Review(models.Model):
@@ -99,10 +109,10 @@ class Review(models.Model):
 
 
 class Visit(models.Model):
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.SET_NULL, null=True)
     customer = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     date = models.DateField()
     spending = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f"{self.customer.username} - {self.restaurant.name} - {self.date}"
+        return f"{self.customer.username} - {self.restaurant} - {self.date}"

@@ -8,11 +8,20 @@
 {% extends 'main.html' %}
 
 {% block content %}
-
-    {% for visit in user_visits %}
-        <p>{{ visit.date }} - {{ visit.restaurant }} - {{ visit.spending }}</p>
-    {% endfor %}
-
+    <h2>Your Visits</h2>
+    <ul>
+        {% for visit in user_visits %}
+            <li>
+                {{ visit.date }},
+                {% if visit.restaurant_id %}
+                    <a href="{% url 'restaurant_detail' visit.restaurant.id %}">{{ visit.restaurant }}</a>
+                {% else %}
+                    Deleted Facility
+                {% endif %}
+                - ${{ visit.spending }}
+            </li>
+        {% endfor %}
+    </ul>
 {% endblock content %}
 </body>
 </html>
