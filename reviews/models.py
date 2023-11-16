@@ -10,6 +10,9 @@ from django.db.models import Avg
 class Customer(AbstractUser):
     pass
 
+    def get_all_visits(self):
+        return Visit.objects.filter(customer=self).order_by('date')
+
 
 class Restaurant(models.Model):
 

@@ -4,7 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import RegistrationForm, LoginForm, RestaurantForm, ReviewForm, VisitForm
-from .models import Restaurant, Review
+from .models import Restaurant, Review, Visit
 
 
 # user
@@ -137,3 +137,12 @@ def add_visit(request, restaurant_id):
 
     return render(request, 'reviews/add_visit.html', {'form': form})
 
+
+def user_visits(request):
+    if request.user.is_authenticated:
+        visits = Visit.objects.filter(customer=request.user).order_by('-date')
+        return render(request, 'reviews/user_visits.html', {'user_visits': visits})
+    else:
+        # Handle the case when the user is not authenticated
+        # Redirect them to login or show an error message
+        pass

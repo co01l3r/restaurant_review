@@ -12,6 +12,7 @@ from .views import (
     create_review,
     user_reviews,
     add_visit,
+    user_visits,
 )
 
 urlpatterns = [
@@ -30,4 +31,5 @@ urlpatterns = [
     path('user-reviews/', user_reviews, name='user_reviews'),
 
     path('restaurants/<int:restaurant_id>/visits/add/', add_visit, name='add_visit'),
+    path('user-visits/', user_visits, name='user_visits'),
 ]
