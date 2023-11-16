@@ -1,23 +1,35 @@
+from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db import DatabaseError
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import RegistrationForm, LoginForm, RestaurantForm, ReviewForm, VisitForm
+from .forms import (LoginForm, RegistrationForm, RestaurantForm, ReviewForm,
+                    VisitForm)
 from .models import Restaurant, Review, Visit
-from .utils import count_user_visits_to_restaurant, calculate_user_total_spending_at_restaurant
+from .utils import (calculate_user_total_spending_at_restaurant,
+                    count_user_visits_to_restaurant)
 
 
 # user
 def register(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('home')
+        try:
+            if form.is_valid():
+                user = form.save()
+                login(request, user)
+                messages.success(request, 'Registration successful.')
+                return redirect('home')
+            else:
+                messages.error(request, 'error')
+        except Exception as e:
+            messages.error(request, f'An error occurred during registration: {e}')
     else:
         form = RegistrationForm()
+
     return render(request, 'reviews/register.html', {'form': form})
 
 
@@ -30,7 +42,12 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
+                messages.success(request, 'Login successful.')
                 return redirect('restaurant_list')
+            else:
+                messages.error(request, 'Invalid username or password. Please try again.')
+        else:
+            messages.error(request, 'error')
     else:
         form = LoginForm()
 
@@ -47,7 +64,10 @@ def add_restaurant(request):
             restaurant = form.save(commit=False)
             restaurant.created_by = request.user
             restaurant.save()
+            messages.success(request, 'Restaurant added successfully.')
             return redirect('restaurant_list')
+        else:
+            messages.error(request, 'error')
     else:
         form = RestaurantForm()
 
@@ -65,7 +85,10 @@ def edit_restaurant(request, restaurant_id):
         form = RestaurantForm(request.POST, instance=restaurant)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Restaurant updated successfully.')
             return redirect('restaurant_list')
+        else:
+            messages.error(request, 'error')
     else:
         form = RestaurantForm(instance=restaurant)
 
@@ -74,32 +97,53 @@ def edit_restaurant(request, restaurant_id):
 
 @login_required
 def delete_restaurant(request, restaurant_id):
-    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+    try:
+        restaurant = get_object_or_404(Restaurant, id=restaurant_id)
 
-    if request.user != restaurant.created_by:
-        raise PermissionDenied("You don't have permission to delete this restaurant.")
+        if request.user != restaurant.created_by:
+            raise PermissionDenied("You don't have permission to delete this restaurant.")
 
-    if request.method == 'POST':
-        restaurant.delete()
+        if request.method == 'POST':
+            restaurant_name = restaurant.name
+            restaurant.delete()
+            messages.success(request, f'Restaurant "{restaurant_name}" deleted successfully.')
+            return redirect('restaurant_list')
+
+        return render(request, 'delete_confirmation.html', {'restaurant': restaurant})
+
+    except Http404:
+        messages.error(request, 'Restaurant not found.')
         return redirect('restaurant_list')
 
-    return render(request, 'delete_confirmation.html', {'restaurant': restaurant})
+    except Exception as e:
+        messages.error(request, f'An error occurred: {str(e)}')
+        return redirect('restaurant_list')
 
 
 def restaurant_list(request):
-    restaurants = Restaurant.objects.all()
-    return render(request, 'reviews/restaurant_list.html', {'restaurants': restaurants})
+    try:
+        restaurants = Restaurant.objects.all()
+        return render(request, 'reviews/restaurant_list.html', {'restaurants': restaurants})
+
+    except DatabaseError as e:
+        messages.error(request, f'Error retrieving restaurant list: {str(e)}')
+        return render(request, 'reviews/restaurant_list.html', {'restaurants': []})
 
 
 def restaurant_detail(request, restaurant_id):
-    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
-    user = request.user
+    try:
+        restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+        user = request.user
 
-    visit_count = count_user_visits_to_restaurant(user, restaurant)
-    total_spending = calculate_user_total_spending_at_restaurant(user, restaurant)
+        visit_count = count_user_visits_to_restaurant(user, restaurant)
+        total_spending = calculate_user_total_spending_at_restaurant(user, restaurant)
 
-    context = {'restaurant': restaurant, 'visit_count': visit_count, 'total_spending': total_spending}
-    return render(request, 'reviews/restaurant_detail.html', context)
+        context = {'restaurant': restaurant, 'visit_count': visit_count, 'total_spending': total_spending}
+        return render(request, 'reviews/restaurant_detail.html', context)
+
+    except Exception as e:
+        messages.error(request, f'Error displaying restaurant details: {str(e)}')
+        return redirect('restaurant_list')
 
 
 # review
@@ -116,42 +160,52 @@ def create_review(request, restaurant_id):
             review.restaurant = restaurant
             review.save()
             return redirect('restaurant_detail', restaurant_id=restaurant.id)
+        else:
+            messages.error(request, "error")
     else:
         form = ReviewForm(instance=user_review)
 
-    return render(request, 'reviews/create_review.html', {'restaurant': restaurant, 'form': form})
+    context = {'restaurant': restaurant, 'form': form}
+    return render(request, 'reviews/create_review.html', context)
 
 
 @login_required
 def user_reviews(request):
-    personal_reviews = Review.objects.filter(customer=request.user)
+    try:
+        personal_reviews = Review.objects.filter(customer=request.user)
+    except DatabaseError as e:
+        personal_reviews = []
+        messages.error(request, f"Error retrieving user reviews: {e}")
+
     return render(request, 'reviews/user_reviews.html', {'user_reviews': personal_reviews})
 
 
 # visit
 @login_required
 def add_visit(request, restaurant_id):
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+
     if request.method == 'POST':
         form = VisitForm(request.POST)
         if form.is_valid():
             visit = form.save(commit=False)
-            visit.restaurant_id = restaurant_id
+            visit.restaurant = restaurant
             visit.customer = request.user
             visit.save()
+            messages.success(request, "Visit added successfully.")
             return redirect('restaurant_detail', restaurant_id=restaurant_id)
+        else:
+            messages.error(request, "error")
     else:
         form = VisitForm()
 
-    return render(request, 'reviews/add_visit.html', {'form': form})
+    return render(request, 'reviews/add_visit.html', {'form': form, 'restaurant': restaurant})
 
 
 @login_required
 def user_visits(request):
-    if request.user.is_authenticated:
-        visits = Visit.objects.filter(customer=request.user).order_by('-date')
-        return render(request, 'reviews/user_visits.html', {'user_visits': visits})
-    else:
-        return redirect('login')
+    visits = Visit.objects.filter(customer=request.user).order_by('-date')
+    return render(request, 'reviews/user_visits.html', {'user_visits': visits})
 
 
 @login_required
