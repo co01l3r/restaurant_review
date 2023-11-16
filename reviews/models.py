@@ -33,7 +33,7 @@ class Restaurant(models.Model):
         reviews = Review.objects.filter(restaurant=self)
         return reviews.aggregate(Avg('rating'))['rating__avg'] or 0
 
-    def get_most_used_pricing(self):
+    def get_restaurant_pricing_category_eval(self):
         pricing_counts = Counter(review.pricing for review in self.review_set.all())
         most_used_pricing, *_ = pricing_counts.most_common(2)
 
@@ -74,7 +74,7 @@ class Review(models.Model):
         (5, '5'),
     ]
 
-    PRICING_CATEGORY_OPTION: List[Tuple[str, str]] = [
+    PRICING_CATEGORY_OPTIONS: List[Tuple[str, str]] = [
         ('cheap', 'Cheap'),
         ('moderate', 'Moderate'),
         ('high', 'High'),
@@ -85,7 +85,7 @@ class Review(models.Model):
     customer = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     rating = models.IntegerField(choices=RATINGS_OPTIONS, default=3)
-    pricing = models.CharField(max_length=30, choices=PRICING_CATEGORY_OPTION, default='moderate')
+    pricing = models.CharField(max_length=30, choices=PRICING_CATEGORY_OPTIONS, default='moderate')
     comment = models.TextField(max_length=500, blank=True, null=True)
 
     class Meta:
