@@ -35,8 +35,11 @@ class Restaurant(models.Model):
         return self.name
 
     def average_rating(self):
-        reviews = Review.objects.filter(restaurant=self)
-        return reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+        try:
+            reviews = Review.objects.filter(restaurant=self)
+            return reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+        except Exception as e:
+            return 0
 
     def get_restaurant_pricing_category_eval(self):
         pricing_counts = Counter(review.pricing for review in self.review_set.all())
