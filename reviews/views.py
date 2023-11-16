@@ -93,11 +93,8 @@ def restaurant_list(request):
 
 def restaurant_detail(request, restaurant_id):
     restaurant = get_object_or_404(Restaurant, id=restaurant_id)
-
-    # Assuming you have the current user available in the request
     user = request.user
 
-    # Use the utility method to get the count of visits and total spending
     visit_count = count_user_visits_to_restaurant(user, restaurant)
     total_spending = calculate_user_total_spending_at_restaurant(user, restaurant)
 
