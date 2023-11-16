@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <title>My Restaurant Reviews</title>
 
-{#    <link rel="stylesheet" href="{% static 'styles/app.css' %}" />#}
     <script src="https://kit.fontawesome.com/86fd3fc0e8.js" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
@@ -19,35 +18,6 @@
       <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
     {% endfor %}
   </ul>
-  <script>
-    setTimeout(function() {
-      var messages = document.getElementsByClassName('messages')[0];
-      messages.style.opacity = 0;
-      setTimeout(function() {
-        messages.style.display = 'none';
-      }, 500);
-    }, 2000);
-  </script>
-{% endif %}
-
-{#{% if messages %}#}
-{#  <ul class="messages">#}
-{#    {% for message in messages %}#}
-{#      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>#}
-{#    {% endfor %}#}
-{#  </ul>#}
-{#{% endif %}#}
-
-{% block content %}
-
-{% endblock content %}
-
-{#{% if messages %}#}
-{#  <ul class="messages">#}
-{#    {% for message in messages %}#}
-{#      <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>#}
-{#    {% endfor %}#}
-{#  </ul>#}
 {#  <script>#}
 {#    setTimeout(function() {#}
 {#      var messages = document.getElementsByClassName('messages')[0];#}
@@ -57,7 +27,11 @@
 {#      }, 500);#}
 {#    }, 2000);#}
 {#  </script>#}
-{#{% endif %}#}
+{% endif %}
+
+{% block content %}
+
+{% endblock content %}
 
 </body>
 </html>

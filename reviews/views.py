@@ -10,7 +10,7 @@ from .forms import (LoginForm, RegistrationForm, RestaurantForm, ReviewForm,
                     VisitForm)
 from .models import Restaurant, Review, Visit
 from .utils import (calculate_user_total_spending_at_restaurant,
-                    count_user_visits_to_restaurant)
+                    count_user_visits_to_restaurant, delete_object)
 
 
 # user
@@ -97,27 +97,13 @@ def edit_restaurant(request, restaurant_id):
 
 @login_required
 def delete_restaurant(request, restaurant_id):
-    try:
-        restaurant = get_object_or_404(Restaurant, id=restaurant_id)
-
-        if request.user != restaurant.created_by:
-            raise PermissionDenied("You don't have permission to delete this restaurant.")
-
-        if request.method == 'POST':
-            restaurant_name = restaurant.name
-            restaurant.delete()
-            messages.success(request, f'Restaurant "{restaurant_name}" deleted successfully.')
-            return redirect('restaurant_list')
-
-        return render(request, 'delete_confirmation.html', {'restaurant': restaurant})
-
-    except Http404:
-        messages.error(request, 'Restaurant not found.')
-        return redirect('restaurant_list')
-
-    except Exception as e:
-        messages.error(request, f'An error occurred: {str(e)}')
-        return redirect('restaurant_list')
+    return delete_object(
+        request,
+        Restaurant,
+        restaurant_id,
+        'delete_restaurant_confirmation.html',
+        'restaurant_list'
+    )
 
 
 def restaurant_list(request):
