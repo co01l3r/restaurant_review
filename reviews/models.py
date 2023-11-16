@@ -16,6 +16,7 @@ class Customer(AbstractUser):
 
     @property
     def visit_counts_for_restaurants(self):
+        # todo: fix
         visit_counts = {}
 
         # Get all visits for the user
@@ -31,6 +32,7 @@ class Customer(AbstractUser):
 
     @property
     def total_spending_for_restaurants(self):
+        # todo: fix
         total_spending = {}
 
         # Get all visits for the user
@@ -135,7 +137,7 @@ class Review(models.Model):
         unique_together = ['restaurant', 'customer']
 
     def __str__(self):
-        return f"{self.restaurant} - {self.customer.username} - {self.rating}"
+        return f"{self.customer.username} - {self.restaurant} - {self.rating}"
 
 
 # visit
@@ -146,4 +148,4 @@ class Visit(models.Model):
     spending = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f"{self.customer.username} - {self.restaurant} - {self.date}"
+        return f"{self.customer.username} - {self.restaurant} - {self.date} - {self.spending}"
