@@ -13,6 +13,17 @@
     <p>Address: {{ restaurant.address }}</p>
     <p>Cuisine: {{ restaurant.get_cuisine_display }}</p>
     <p>Pricing: {{ restaurant.get_restaurant_pricing_category_eval }}</p>
+    <p>Visited: {{ restaurant.get_restaurant_pricing_category_eval }}</p>
+
+
+
+{% if user.is_authenticated %}
+    <p>Visited:
+        {% for restaurant, count in user.visit_counts_for_restaurants.items %}
+            {{ count }}x
+        {% endfor %}
+    </p>
+{% endif %}
 
 {% endblock content %}
 </body>

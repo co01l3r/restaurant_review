@@ -6,15 +6,27 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import Avg
 
-from django.db.models.signals import pre_delete
-from django.dispatch import receiver
-
 
 class Customer(AbstractUser):
     pass
 
     def get_all_visits(self):
         return Visit.objects.filter(customer=self).order_by('date')
+
+    @property
+    def visit_counts_for_restaurants(self):
+        visit_counts = {}
+
+        # Get all visits for the user
+        user_visits = Visit.objects.filter(customer=self)
+
+        # Calculate visit counts for each restaurant
+        for visit in user_visits:
+            if visit.restaurant:
+                restaurant_name = visit.restaurant.name
+                visit_counts[restaurant_name] = visit_counts.get(restaurant_name, 0) + 1
+
+        return visit_counts
 
 
 class Restaurant(models.Model):
