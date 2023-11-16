@@ -12,19 +12,20 @@
     <h2>{{ restaurant.name }} - Average Rating: {{ restaurant.average_rating }}</h2>
     <p>Address: {{ restaurant.address }}</p>
     <p>Cuisine: {{ restaurant.get_cuisine_display }}</p>
+{#    if no pricing records, hide this #}
+    {% if restaurant.get_restaurant_pricing_category_eval %}
     <p>Pricing: {{ restaurant.get_restaurant_pricing_category_eval }}</p>
+    {% endif %}
 
+{#    if not authorized and if no values exists, hide this #}
 {% if user.is_authenticated %}
-    <p>Visited:
-        {% for restaurant, count in user.visit_counts_for_restaurants.items %}
-            {{ count }}x
-        {% endfor %}
-    </p>
-    <p>Spending in this facility total:
-        {% for restaurant, count in user.total_spending_for_restaurants.items %}
-            ${{ count }}
-        {% endfor %}
-    </p>
+    {% if visit_count %}
+        <p>Visited: {{ visit_count }}x</p>
+    {% endif %}
+
+    {% if total_spending %}
+        <p>Total Spending: ${{ total_spending }}</p>
+    {% endif %}
 {% endif %}
 
 {% endblock content %}

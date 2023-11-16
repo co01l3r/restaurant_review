@@ -14,38 +14,6 @@ class Customer(AbstractUser):
     def get_all_visits(self):
         return Visit.objects.filter(customer=self).order_by('date')
 
-    @property
-    def visit_counts_for_restaurants(self):
-        # todo: fix
-        visit_counts = {}
-
-        # Get all visits for the user
-        user_visits = Visit.objects.filter(customer=self)
-
-        # Calculate visit counts for each restaurant
-        for visit in user_visits:
-            if visit.restaurant:
-                restaurant_name = visit.restaurant.name
-                visit_counts[restaurant_name] = visit_counts.get(restaurant_name, 0) + 1
-
-        return visit_counts
-
-    @property
-    def total_spending_for_restaurants(self):
-        # todo: fix
-        total_spending = {}
-
-        # Get all visits for the user
-        user_visits = Visit.objects.filter(customer=self)
-
-        # Calculate total spending for each restaurant
-        for visit in user_visits:
-            if visit.restaurant:
-                restaurant_name = visit.restaurant.name
-                total_spending[restaurant_name] = total_spending.get(restaurant_name, 0) + visit.spending
-
-        return total_spending
-
 
 # restaurant
 class Restaurant(models.Model):

@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import RegistrationForm, LoginForm, RestaurantForm, ReviewForm, VisitForm
 from .models import Restaurant, Review, Visit
+from .utils import count_user_visits_to_restaurant, calculate_user_total_spending_at_restaurant
 
 
 # user
@@ -92,7 +93,16 @@ def restaurant_list(request):
 
 def restaurant_detail(request, restaurant_id):
     restaurant = get_object_or_404(Restaurant, id=restaurant_id)
-    return render(request, 'reviews/restaurant_detail.html', {'restaurant': restaurant})
+
+    # Assuming you have the current user available in the request
+    user = request.user
+
+    # Use the utility method to get the count of visits and total spending
+    visit_count = count_user_visits_to_restaurant(user, restaurant)
+    total_spending = calculate_user_total_spending_at_restaurant(user, restaurant)
+
+    context = {'restaurant': restaurant, 'visit_count': visit_count, 'total_spending': total_spending}
+    return render(request, 'reviews/restaurant_detail.html', context)
 
 
 # review
