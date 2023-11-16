@@ -13,6 +13,7 @@ from .views import (
     user_reviews,
     add_visit,
     user_visits,
+    delete_visit,
 )
 
 urlpatterns = [
@@ -32,4 +33,5 @@ urlpatterns = [
 
     path('restaurants/<int:restaurant_id>/visits/add/', add_visit, name='add_visit'),
     path('user-visits/', user_visits, name='user_visits'),
+    path('user-visits/delete_visit/<int:visit_id>/', delete_visit, name='delete_visit'),
 ]

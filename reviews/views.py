@@ -152,3 +152,13 @@ def user_visits(request):
         return render(request, 'reviews/user_visits.html', {'user_visits': visits})
     else:
         return redirect('login')
+
+
+@login_required
+def delete_visit(request, visit_id):
+    visit = get_object_or_404(Visit, id=visit_id)
+
+    if visit.customer == request.user:
+        visit.delete()
+
+    return redirect('user_visits')
