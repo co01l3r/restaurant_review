@@ -101,7 +101,7 @@ def delete_restaurant(request, restaurant_id):
         request,
         Restaurant,
         restaurant_id,
-        'delete_restaurant_confirmation.html',
+        'delete_restaurant.html',
         'restaurant_list'
     )
 
