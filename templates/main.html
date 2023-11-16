@@ -18,15 +18,15 @@
       <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
     {% endfor %}
   </ul>
-{#  <script>#}
-{#    setTimeout(function() {#}
-{#      var messages = document.getElementsByClassName('messages')[0];#}
-{#      messages.style.opacity = 0;#}
-{#      setTimeout(function() {#}
-{#        messages.style.display = 'none';#}
-{#      }, 500);#}
-{#    }, 2000);#}
-{#  </script>#}
+  <script>
+    setTimeout(function() {
+      var messages = document.getElementsByClassName('messages')[0];
+      messages.style.opacity = 0;
+      setTimeout(function() {
+        messages.style.display = 'none';
+      }, 500);
+    }, 2000);
+  </script>
 {% endif %}
 
 {% block content %}
