@@ -7,6 +7,7 @@ from django.db import models
 from django.db.models import Avg
 
 
+# user
 class Customer(AbstractUser):
     pass
 
@@ -44,6 +45,7 @@ class Customer(AbstractUser):
         return total_spending
 
 
+# restaurant
 class Restaurant(models.Model):
 
     RESTAURANT_TYPE_OPTIONS: List[Tuple[str, str]] = [
@@ -104,6 +106,7 @@ class Restaurant(models.Model):
         return None
 
 
+# review
 class Review(models.Model):
 
     RATINGS_OPTIONS: List[Tuple[int, str]] = [
@@ -135,6 +138,7 @@ class Review(models.Model):
         return f"{self.restaurant} - {self.customer.username} - {self.rating}"
 
 
+# visit
 class Visit(models.Model):
     restaurant = models.ForeignKey(Restaurant, on_delete=models.SET_NULL, null=True)
     customer = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
