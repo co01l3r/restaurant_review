@@ -48,7 +48,7 @@ class Restaurant(models.Model):
             # Specific tie scenarios
             tie_scenarios = [
                 (['cheap', 'high'], 'moderate'),
-                (['cheap', 'moderate'], 'moderate'),
+                (['cheap', 'overpriced'], 'moderate'),
                 (['moderate', 'overpriced'], 'high')
             ]
 
