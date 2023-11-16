@@ -14,20 +14,18 @@
     <p>Cuisine: {{ restaurant.get_cuisine_display }}</p>
     <p>Pricing: {{ restaurant.get_restaurant_pricing_category_eval }}</p>
 
-
-
-{% if user.is_authenticated %}
-    <p>Visited:
-        {% for restaurant, count in user.visit_counts_for_restaurants.items %}
-            {{ count }}x
-        {% endfor %}
-    </p>
-    <p>Spending in this facility total:
-        {% for restaurant, count in user.total_spending_for_restaurants.items %}
-            ${{ count }}
-        {% endfor %}
-    </p>
-{% endif %}
+    {% if user.is_authenticated %}
+        <p>Visited:
+            {% for restaurant, count in user.visit_counts_for_restaurants.items %}
+                {{ count }}x
+            {% endfor %}
+        </p>
+        <p>Spending in this facility total:
+            {% for restaurant, count in user.total_spending_for_restaurants.items %}
+                ${{ count }}
+            {% endfor %}
+        </p>
+    {% endif %}
 
 {% endblock content %}
 </body>
