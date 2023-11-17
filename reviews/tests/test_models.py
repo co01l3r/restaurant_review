@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from reviews.models import Restaurant, Review, Visit, Customer
 from datetime import date
+from django.db import IntegrityError
 
 
 # customer
@@ -143,29 +144,44 @@ class ReviewModelTestCase(TestCase):
 # visit
 class VisitModelTestCase(TestCase):
     def setUp(self):
-        self.user = get_user_model().objects.create_user(username='testuser', password='testpassword')
+        self.user = get_user_model().objects.create_user(
+            username='testuser',
+            password='TestPassword123'
+        )
 
         self.restaurant = Restaurant.objects.create(
             name='Test Restaurant',
-            cuisine='european_cuisine',
-            address='Test Address',
             created_by=self.user
         )
 
-    def test_unique_visit_combination(self):
-        visit1 = Visit.objects.create(
-            restaurant=self.restaurant,
-            customer=self.user,
-            date=date(2023, 1, 1),
-            spending=50.00
-        )
+    class VisitModelTestCase(TestCase):
+        def setUp(self):
+            self.user = get_user_model().objects.create_user(
+                username='testuser',
+                password='testpassword'
+            )
+            self.restaurant = Restaurant.objects.create(
+                name='Test Restaurant',
+                description='Test Description',
+                created_by=self.user
+            )
 
-        with self.assertRaises(Exception) as context:
-            Visit.objects.create(
+        def test_unique_visit_combination(self):
+            visit1 = Visit.objects.create(
                 restaurant=self.restaurant,
                 customer=self.user,
                 date=date(2023, 1, 1),
-                spending=60.00
+                spending=50.00
             )
 
-        self.assertIn('UNIQUE constraint failed', str(context.exception))
+            try:
+                Visit.objects.create(
+                    restaurant=self.restaurant,
+                    customer=self.user,
+                    date=date(2023, 1, 1),
+                    spending=60.00
+                )
+            except IntegrityError:
+                pass
+            else:
+                self.fail("IntegrityError not raised for non-unique visit combination")

@@ -118,5 +118,8 @@ class Visit(models.Model):
     date = models.DateField()
     spending = models.DecimalField(max_digits=10, decimal_places=2)
 
+    class Meta:
+        unique_together = ['restaurant', 'customer', 'date']
+
     def __str__(self):
         return f"{self.customer.username} - {self.restaurant} - {self.date} - {self.spending}"
