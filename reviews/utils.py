@@ -4,7 +4,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, render, redirect
 
 
-def delete_object(request, model, object_id, template_name, success_url_name):
+def delete_object(request, model, object_id, success_url_name, template_name=None):
     try:
         obj = get_object_or_404(model, id=object_id)
 
@@ -14,8 +14,13 @@ def delete_object(request, model, object_id, template_name, success_url_name):
             messages.success(request, f'{model.__name__} "{obj_name}" deleted successfully.')
             return redirect(success_url_name)
 
-        context = {model.__name__.lower(): obj, 'success_url_name': success_url_name}
-        return render(request, f'reviews/{template_name}', context)
+        if template_name:
+            context = {model.__name__.lower(): obj, 'success_url_name': success_url_name}
+            return render(request, f'reviews/{template_name}', context)
+        else:
+            obj.delete()
+            messages.success(request, f'{model.__name__} deleted successfully.')
+            return redirect(success_url_name)
 
     except Http404:
         messages.error(request, f'{model.__name__} not found.')

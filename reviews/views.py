@@ -98,10 +98,10 @@ def edit_restaurant(request, restaurant_id):
 def delete_restaurant(request, restaurant_id):
     return delete_object(
         request,
-        Restaurant,
-        restaurant_id,
-        'delete_restaurant.html',
-        'restaurant_list'
+        model=Restaurant,
+        object_id=restaurant_id,
+        success_url_name='restaurant_list',
+        template_name='delete_restaurant.html',
     )
 
 
@@ -195,9 +195,10 @@ def user_visits(request):
 
 @login_required
 def delete_visit(request, visit_id):
-    visit = get_object_or_404(Visit, id=visit_id)
-
-    if visit.customer == request.user:
-        visit.delete()
-
-    return redirect('user_visits')
+    return delete_object(
+        request,
+        model=Visit,
+        object_id=visit_id,
+        success_url_name='user_visits',
+        template_name=None
+    )
