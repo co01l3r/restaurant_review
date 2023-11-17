@@ -9,7 +9,7 @@ from .forms import (LoginForm, RegistrationForm, RestaurantForm, ReviewForm,
                     VisitForm)
 from .models import Restaurant, Review, Visit
 from .utils import (calculate_user_total_spending_at_restaurant,
-                    count_user_visits_to_restaurant, delete_object)
+                    count_user_visits_to_restaurant)
 
 
 # user
@@ -96,13 +96,22 @@ def edit_restaurant(request, restaurant_id):
 
 @login_required
 def delete_restaurant(request, restaurant_id):
-    return delete_object(
-        request,
-        model=Restaurant,
-        object_id=restaurant_id,
-        success_url_name='restaurant_list',
-        template_name='delete_restaurant.html',
-    )
+    try:
+        restaurant = get_object_or_404(Restaurant, id=restaurant_id, created_by=request.user)
+        restaurant_name = str(restaurant)
+
+        if request.method == 'POST':
+            restaurant.delete()
+            messages.success(request, f'Restaurant "{restaurant_name}" deleted successfully.')
+            return redirect('restaurant_list')
+
+    except Restaurant.DoesNotExist:
+        messages.error(request, f'Restaurant not found.')
+    except Exception as e:
+        messages.error(request, f'An error occurred: {str(e)}')
+
+    context = {'restaurant': restaurant}
+    return render(request, 'reviews/delete_restaurant.html', context)
 
 
 def restaurant_list(request):
@@ -195,10 +204,14 @@ def user_visits(request):
 
 @login_required
 def delete_visit(request, visit_id):
-    return delete_object(
-        request,
-        model=Visit,
-        object_id=visit_id,
-        success_url_name='user_visits',
-        template_name=None
-    )
+    try:
+        visit = get_object_or_404(Visit, id=visit_id, customer=request.user)
+        visit_name = str(visit)
+        visit.delete()
+        messages.success(request, f'Visit "{visit_name}" deleted successfully.')
+    except Visit.DoesNotExist:
+        messages.error(request, f'Visit not found.')
+    except Exception as e:
+        messages.error(request, f'An error occurred: {str(e)}')
+
+    return redirect('user_visits')
