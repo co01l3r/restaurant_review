@@ -1,10 +1,11 @@
-from django.contrib.auth import get_user_model
-from django.test import TestCase, Client
-from reviews.forms import RegistrationForm, LoginForm, RestaurantForm, ReviewForm, VisitForm
-from reviews.models import Restaurant, Review, Visit
-from django.urls import reverse
 from datetime import date
-from django import forms
+
+from django.contrib.auth import get_user_model
+from django.test import Client, TestCase
+from django.urls import reverse
+
+from reviews.forms import LoginForm, RegistrationForm, RestaurantForm, ReviewForm, VisitForm
+from reviews.models import Restaurant, Review, Visit
 
 
 # user

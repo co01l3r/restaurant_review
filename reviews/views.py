@@ -153,6 +153,9 @@ def create_review(request, restaurant_id):
             review.customer = request.user
             review.restaurant = restaurant
             review.save()
+
+            messages.success(request, 'Review submitted successfully.')
+
             return redirect('restaurant_detail', restaurant_id=restaurant.id)
         else:
             messages.error(request, "error")

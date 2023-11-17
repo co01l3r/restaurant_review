@@ -1,8 +1,10 @@
-from django.test import TestCase
-from django.contrib.auth import get_user_model
-from reviews.models import Restaurant, Review, Visit, Customer
 from datetime import date
+
+from django.contrib.auth import get_user_model
 from django.db import IntegrityError
+from django.test import TestCase
+
+from reviews.models import Customer, Restaurant, Review, Visit
 
 
 # customer
