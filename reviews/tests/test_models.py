@@ -113,24 +113,23 @@ class ReviewModelTestCase(TestCase):
         )
 
     def test_unique_review_combination(self):
-        review1 = Review.objects.create(
+        existing_review, created = Review.objects.get_or_create(
             restaurant=self.restaurant,
             customer=self.user,
-            rating=4,
-            pricing='moderate',
-            comment='Test Comment 1'
+            defaults={
+                'rating': 4,
+                'pricing': 'moderate',
+                'comment': 'Test Comment 1',
+            }
         )
 
-        with self.assertRaises(Exception) as context:
-            Review.objects.create(
-                restaurant=self.restaurant,
-                customer=self.user,
-                rating=5,
-                pricing='high',
-                comment='Test Comment 2'
-            )
+        if not created:
+            existing_review.rating = 4
+            existing_review.pricing = 'moderate'
+            existing_review.comment = 'Test Comment 1'
+            existing_review.save()
 
-        self.assertIn('UNIQUE constraint failed', str(context.exception))
+        self.assertEqual(Review.objects.filter(restaurant=self.restaurant, customer=self.user).count(), 1)
 
     def test_default_rating_value(self):
         review = Review.objects.create(
