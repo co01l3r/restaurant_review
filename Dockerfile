@@ -10,10 +10,10 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 # Copy the current directory contents into the container at /app
-COPY restaurant_review /app/restaurant_review
+COPY . .
 
 # Make port 8000 available for the app
 EXPOSE 8000
 
 # Run the app.py when the container launches
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "restaurant_review.wsgi:application"]
