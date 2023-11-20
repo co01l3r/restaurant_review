@@ -19,6 +19,7 @@ urlpatterns = [
     path('restaurants/delete/<int:restaurant_id>/', views.deleteRestaurant, name='delete-restaurant'),
     path('restaurants/<int:restaurant_id>/average-rating/', views.get_average_rating, name='restaurant-average-rating'),
     path('restaurants/<int:restaurant_id>/pricing-category/', views.get_pricing_category_evaluation, name='restaurant-pricing-category'),
+    path('restaurants/<int:restaurant_id>/visits/create/', views.createVisit, name='create-visit'),
 
     path('reviews/', views.getReviews, name='reviews-list'),
     path('reviews/<int:review_id>/', views.getReview, name='review-detail'),

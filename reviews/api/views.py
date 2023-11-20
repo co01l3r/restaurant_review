@@ -5,11 +5,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from reviews.models import Customer, Restaurant, Review, Visit
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from reviews.forms import RestaurantForm, ReviewForm
+from reviews.forms import RestaurantForm, ReviewForm, VisitForm
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework import status
 
 # jwt
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -290,3 +291,32 @@ def getVisit(request, visit_id):
     serializer = VisitSerializer(visit, many=False)
 
     return Response(serializer.data)
+
+
+@api_view(['GET', 'POST'])
+@authentication_classes([JWTAuthentication])
+def createVisit(request, restaurant_id):
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+
+    if request.method == 'POST':
+        customer, created = Customer.objects.get_or_create(username=request.user.username)
+
+        form = VisitForm(request.POST)
+
+        if form.is_valid():
+            visit = form.save(commit=False)
+            visit.customer = customer
+            visit.restaurant = restaurant
+            visit.save()
+            serializer = VisitSerializer(visit)
+            messages.success(request, 'Visit added successfully.')
+            return Response(serializer.data)
+        else:
+            messages.error(request, 'Error in form submission.')
+            print(f"Form errors: {form.errors}")
+            return Response({'detail': 'Error in form submission.'}, status=400)
+
+    else:
+        form = VisitForm()
+
+    return render(request, 'reviews/add_visit.html', {'form': form, 'restaurant': restaurant})
