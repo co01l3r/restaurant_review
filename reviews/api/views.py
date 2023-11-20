@@ -131,9 +131,6 @@ def getReview(request, review_id):
 def createReview(request, restaurant_id):
     restaurant = get_object_or_404(Restaurant, id=restaurant_id)
 
-    print(f"Request user: {request.user}")
-    print(f"Is authenticated: {request.user.is_authenticated}")
-
     if request.method == 'POST':
         customer, created = Customer.objects.get_or_create(username=request.user.username)
 
@@ -335,5 +332,3 @@ def deleteVisit(request, visit_id):
     visit.delete()
     messages.success(request, 'Visit deleted successfully.')
     return render(request, 'reviews/user_visits.html')
-
-
