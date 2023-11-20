@@ -1,16 +1,20 @@
-from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from .serializers import MyTokenObtainPairSerializer, CustomerSerializer, RestaurantSerializer, ReviewSerializer, VisitSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView
-from reviews.models import Customer, Restaurant, Review, Visit
-from django.db.models import Q
-from django.shortcuts import get_object_or_404
-from reviews.forms import RestaurantForm, ReviewForm, VisitForm
-from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.db.models import Q
+from django.shortcuts import get_object_or_404, redirect, render
+from rest_framework.decorators import api_view, authentication_classes
+from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework import status
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+from reviews.forms import RestaurantForm, ReviewForm, VisitForm
+from reviews.models import Customer, Restaurant, Review, Visit
+from .serializers import (
+    MyTokenObtainPairSerializer,
+    CustomerSerializer,
+    RestaurantSerializer,
+    ReviewSerializer,
+    VisitSerializer,
+)
 
 # jwt
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -46,6 +50,7 @@ def getRoutes(request):
 
         '/api/visits',
         '/api/visits/<int:visit_id>',
+        '/api/visits/<int:visit_id>/delete',
     ]
     return Response(routes)
 
@@ -320,3 +325,15 @@ def createVisit(request, restaurant_id):
         form = VisitForm()
 
     return render(request, 'reviews/add_visit.html', {'form': form, 'restaurant': restaurant})
+
+
+@api_view(['GET', 'POST'])
+@authentication_classes([JWTAuthentication])
+def deleteVisit(request, visit_id):
+    visit = get_object_or_404(Visit, id=visit_id)
+
+    visit.delete()
+    messages.success(request, 'Visit deleted successfully.')
+    return render(request, 'reviews/user_visits.html')
+
+

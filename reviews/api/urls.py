@@ -28,4 +28,5 @@ urlpatterns = [
 
     path('visits/', views.getVisits, name='visits-list'),
     path('visits/<int:visit_id>/', views.getVisit, name='visit-detail'),
+    path('visits/<int:visit_id>/delete/', views.deleteVisit, name='delete-visit'),
 ]
