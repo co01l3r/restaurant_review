@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from reviews.models import Customer, Restaurant, Review, Visit
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from reviews.forms import RestaurantForm
+from reviews.forms import RestaurantForm, ReviewForm
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -114,6 +114,37 @@ def getReview(request, review_id):
     serializer = ReviewSerializer(review, many=False)
 
     return Response(serializer.data)
+
+
+@api_view(['GET', 'POST'])
+@authentication_classes([JWTAuthentication])
+def createReview(request, restaurant_id):
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+
+    print(f"Request user: {request.user}")
+    print(f"Is authenticated: {request.user.is_authenticated}")
+
+    if request.method == 'POST':
+        customer, created = Customer.objects.get_or_create(username=request.user.username)
+
+        form = ReviewForm(request.POST)
+
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.customer = customer
+            review.restaurant = restaurant
+            review.save()
+            serializer = ReviewSerializer(review)
+            messages.success(request, 'Review added successfully.')
+            return Response(serializer.data)
+        else:
+            messages.error(request, 'Error in form submission.')
+            print(f"Form errors: {form.errors}")
+
+    else:
+        form = ReviewForm()
+
+    return render(request, 'reviews/create_review.html', {'form': form, 'restaurant': restaurant})
 
 
 @api_view(['GET', 'POST'])
