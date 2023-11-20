@@ -15,7 +15,10 @@ urlpatterns = [
     path('restaurants/<int:restaurant_id>/', views.getRestaurant, name='restaurant-detail'),
     path('restaurants/create/', views.createRestaurant, name='create-restaurant'),
     path('restaurants/edit/<int:restaurant_id>/', views.editRestaurant, name='edit-restaurant'),
+    path('restaurants/<int:restaurant_id>/reviews/', views.listReviews, name='list-reviews'),
     path('restaurants/delete/<int:restaurant_id>/', views.deleteRestaurant, name='delete-restaurant'),
+    path('restaurants/<int:restaurant_id>/average-rating/', views.get_average_rating, name='restaurant-average-rating'),
+    path('restaurants/<int:restaurant_id>/pricing-category/', views.get_pricing_category_evaluation, name='restaurant-pricing-category'),
 
     path('reviews/', views.getReviews, name='reviews-list'),
     path('reviews/<int:review_id>/', views.getReview, name='review-detail'),

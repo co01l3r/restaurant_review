@@ -11,8 +11,6 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-
-
 # jwt
 class MyTokenObtainPairView(TokenObtainPairView):
     # /api/token
@@ -35,6 +33,8 @@ def getRoutes(request):
         '/api/restaurants/create',
         '/api/restaurants/edit/<int:restaurant_id>',
         '/api/restaurants/delete/<int:restaurant_id>',
+        '/api/restaurants/<int:restaurant_id>/reviews',
+        '/api/restaurants/<int:restaurant_id>/average-rating',
 
         '/api/reviews',
         '/api/reviews/<int:review_id>',
@@ -174,6 +174,33 @@ def editReview(request, restaurant_id, review_id):
         form = ReviewForm(instance=review)
 
     return render(request, 'reviews/create_review.html', {'form': form, 'restaurant': restaurant, 'review': review})
+
+
+# restaurant
+@api_view(['GET'])
+def get_average_rating(request, restaurant_id):
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+    average_rating = restaurant.average_rating()
+
+    return Response({'average_rating': average_rating})
+
+
+@api_view(['GET'])
+def get_pricing_category_evaluation(request, restaurant_id):
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+    pricing_category_eval = restaurant.get_restaurant_pricing_category_eval()
+
+    return Response({'pricing_category_evaluation': pricing_category_eval})
+
+
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+def listReviews(request, restaurant_id):
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+    reviews = Review.objects.filter(restaurant=restaurant)
+    serializer = ReviewSerializer(reviews, many=True)
+
+    return render(request, 'reviews/list_reviews.html', {'reviews': serializer.data, 'restaurant': restaurant})
 
 
 @api_view(['GET', 'POST'])
