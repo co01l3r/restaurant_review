@@ -9,10 +9,12 @@ from django.shortcuts import get_object_or_404
 
 # jwt
 class MyTokenObtainPairView(TokenObtainPairView):
+    # /api/token
+    # /api/token/refresh
     serializer_class = MyTokenObtainPairSerializer
 
 
-# customer
+# all endpoints
 @api_view(['GET'])
 def getRoutes(request):
     routes = [
@@ -24,13 +26,19 @@ def getRoutes(request):
 
         '/api/restaurants',
         '/api/restaurants/<int:restaurant_id>',
+
+        '/api/reviews',
+        '/api/reviews/<int:review_id>',
+
+        '/api/visits',
+        '/api/visits/<int:visit_id>',
     ]
     return Response(routes)
 
 
+# customer
 @api_view(['GET'])
 def getCustomers(request):
-    # /api/customers/?query=
     query = request.GET.get('query', '')
 
     customers = Customer.objects.filter(Q(username__icontains=query) | Q(email__icontains=query))
@@ -41,7 +49,7 @@ def getCustomers(request):
 
 @api_view(['GET'])
 def getCustomer(request, username):
-    customer = Customer.objects.get(username=username)
+    customer = get_object_or_404(Customer, username=username)
     serializer = CustomerSerializer(customer, many=False)
 
     return Response(serializer.data)
@@ -50,10 +58,14 @@ def getCustomer(request, username):
 # restaurant
 @api_view(['GET'])
 def getRestaurants(request):
-    # /api/restaurants/?query=
-    query = request.GET.get('query', '')
+    restaurant_name = request.GET.get('restaurant_name', '')
 
-    restaurants = Restaurant.objects.filter(Q(name__icontains=query) | Q(address__icontains=query))
+    query_params = {}
+
+    if restaurant_name:
+        query_params['restaurant__name__icontains'] = restaurant_name
+
+    restaurants = Restaurant.objects.filter(**query_params)
     serializer = RestaurantSerializer(restaurants, many=True)
 
     return Response(serializer.data)
@@ -70,17 +82,55 @@ def getRestaurant(request, restaurant_id):
 # review
 @api_view(['GET'])
 def getReviews(request):
-    # /api/reviews/?query=
-    query = request.GET.get('query', '')
+    username = request.GET.get('username', '')
+    restaurant_name = request.GET.get('restaurant_name', '')
 
-    reviews = Review.objects.filter(
-        Q(restaurant__name__icontains=query) |
-        Q(customer__username__icontains=query) |
-        Q(rating__icontains=query)
-    )
-    serializer = RestaurantSerializer(reviews, many=True)
+    query_params = {}
+
+    if username:
+        query_params['customer__username__icontains'] = username
+
+    if restaurant_name:
+        query_params['restaurant__name__icontains'] = restaurant_name
+
+    reviews = Review.objects.filter(**query_params)
+    serializer = ReviewSerializer(reviews, many=True)
+
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+def getReview(request, review_id):
+    review = get_object_or_404(Review, id=review_id)
+    serializer = ReviewSerializer(review, many=False)
 
     return Response(serializer.data)
 
 
 # visit
+@api_view(['GET'])
+def getVisits(request):
+    username = request.GET.get('username', '')
+    restaurant_name = request.GET.get('restaurant_name', '')
+
+    query_params = {}
+
+    if username:
+        query_params['customer__username__icontains'] = username
+
+    if restaurant_name:
+        query_params['restaurant__name__icontains'] = restaurant_name
+
+    visits = Visit.objects.filter(**query_params)
+    serializer = VisitSerializer(visits, many=True)
+
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+def getVisit(request, visit_id):
+    # /api/visits/<int:visit_id>
+    visit = get_object_or_404(Visit, id=visit_id)
+    serializer = VisitSerializer(visit, many=False)
+
+    return Response(serializer.data)
