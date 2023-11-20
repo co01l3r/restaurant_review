@@ -34,7 +34,11 @@ def getRoutes(request):
         '/api/restaurants/edit/<int:restaurant_id>',
         '/api/restaurants/delete/<int:restaurant_id>',
         '/api/restaurants/<int:restaurant_id>/reviews',
+        '/api/restaurants/<int:restaurant_id>/reviews/create',
+        '/api/restaurants/<int:restaurant_id>/reviews/edit'
+        '/api/restaurants/<int:restaurant_id>/reviews',
         '/api/restaurants/<int:restaurant_id>/average-rating',
+        '/api/restaurants/<int:restaurant_id>/pricing-category',
 
         '/api/reviews',
         '/api/reviews/<int:review_id>',
