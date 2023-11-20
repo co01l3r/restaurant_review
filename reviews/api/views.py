@@ -149,6 +149,35 @@ def createReview(request, restaurant_id):
 
 @api_view(['GET', 'POST'])
 @authentication_classes([JWTAuthentication])
+def editReview(request, restaurant_id, review_id):
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+    review = get_object_or_404(Review, id=review_id)
+
+    if request.method == 'POST':
+        customer, created = Customer.objects.get_or_create(username=request.user.username)
+
+        form = ReviewForm(request.POST, instance=review)
+
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.customer = customer
+            review.restaurant = restaurant
+            review.save()
+            serializer = ReviewSerializer(review)
+            messages.success(request, 'Review updated successfully.')
+            return Response(serializer.data)
+        else:
+            messages.error(request, 'Error in form submission.')
+            print(f"Form errors: {form.errors}")
+
+    else:
+        form = ReviewForm(instance=review)
+
+    return render(request, 'reviews/create_review.html', {'form': form, 'restaurant': restaurant, 'review': review})
+
+
+@api_view(['GET', 'POST'])
+@authentication_classes([JWTAuthentication])
 def createRestaurant(request):
     if request.method == 'POST':
         form = RestaurantForm(request.POST)
