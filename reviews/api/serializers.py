@@ -67,13 +67,21 @@ class CustomerSerializer(ModelSerializer):
 
 class RestaurantSerializer(serializers.ModelSerializer):
     created_by = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    pricing_category_eval = serializers.SerializerMethodField()
 
     def get_created_by(self, obj: Restaurant) -> str or None:
         return obj.created_by.username if obj.created_by else None
 
+    def get_average_rating(self, obj: Restaurant) -> float:
+        return obj.average_rating()
+
+    def get_pricing_category_eval(self, obj: Restaurant) -> str or None:
+        return obj.get_restaurant_pricing_category_eval()
+
     class Meta:
         model = Restaurant
-        fields = ['id', 'name', 'cuisine', 'address', 'created_by']
+        fields = ['id', 'name', 'cuisine', 'address', 'created_by', 'average_rating', 'pricing_category_eval']
 
 
 class ReviewSerializer(ModelSerializer):

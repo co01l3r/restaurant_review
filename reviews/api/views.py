@@ -144,23 +144,23 @@ def create_restaurant(request):
 
 
 # # review
-# @api_view(['GET'])
-# def getReviews(request):
-#     username = request.GET.get('username', '')
-#     restaurant_name = request.GET.get('restaurant_name', '')
-#
-#     query_params = {}
-#
-#     if username:
-#         query_params['customer__username__icontains'] = username
-#
-#     if restaurant_name:
-#         query_params['restaurant__name__icontains'] = restaurant_name
-#
-#     reviews = Review.objects.filter(**query_params)
-#     serializer = ReviewSerializer(reviews, many=True)
-#
-#     return Response(serializer.data)
+@api_view(['GET'])
+def getReviews(request):
+    username = request.GET.get('username', '')
+    restaurant_name = request.GET.get('restaurant_name', '')
+
+    query_params = {}
+
+    if username:
+        query_params['customer__username__icontains'] = username
+
+    if restaurant_name:
+        query_params['restaurant__name__icontains'] = restaurant_name
+
+    reviews = Review.objects.filter(**query_params)
+    serializer = ReviewSerializer(reviews, many=True)
+
+    return Response(serializer.data)
 #
 #
 # @api_view(['GET'])
