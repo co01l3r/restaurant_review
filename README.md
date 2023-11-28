@@ -35,24 +35,22 @@ $ docker-compose exec web python manage.py test
 available API endpoints:
 ```shell
 [
-    "/api/token",
-    "/api/token/refresh",
-    "/api/customers",
-    "/api/customers/<str:username>",
-    "/api/restaurants",
-    "/api/restaurants/<int:restaurant_id>",
-    "/api/restaurants/create",
-    "/api/restaurants/edit/<int:restaurant_id>",
-    "/api/restaurants/delete/<int:restaurant_id>",
-    "/api/restaurants/<int:restaurant_id>/reviews",
-    "/api/restaurants/<int:restaurant_id>/reviews/create",
-    "/api/restaurants/<int:restaurant_id>/reviews/edit/api/restaurants/<int:restaurant_id>/reviews",
-    "/api/restaurants/<int:restaurant_id>/average-rating",
-    "/api/restaurants/<int:restaurant_id>/pricing-category",
-    "/api/reviews",
-    "/api/reviews/<int:review_id>",
-    "/api/visits",
-    "/api/visits/<int:visit_id>",
-    "/api/visits/<int:visit_id>/delete"
+        '/api/token',
+        '/api/token/refresh',
+
+        '/api/customers',
+        '/api/customers/<str:username>',
+
+        '/api/restaurants',
+        '/api/restaurants/<int:restaurant_id>',
+        '/api/restaurants/create-restaurant',
+
+        '/api/reviews/',
+        '/api/reviews/<int:review_id>',
+        '/api/reviews/create-review',
+
+        '/api/visits/',
+        '/api/visits/<int:visit_id>',
+        '/api/visits/create-visit',
 ]
 ```

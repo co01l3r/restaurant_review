@@ -1,7 +1,8 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
+from rest_framework.serializers import ModelSerializer
 from reviews.models import Customer, Restaurant, Review, Visit
+from reviews.utils import calculate_user_total_spending_at_restaurant
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -31,7 +32,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         """
         token = super().get_token(user)
-        # Add custom claims
         token['username'] = user.username
         token['email'] = user.email
 
@@ -66,12 +66,29 @@ class CustomerSerializer(ModelSerializer):
 
 
 class RestaurantSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Restaurant model.
+
+    Attributes:
+        - created_by (int or None): The ID of the user who created the restaurant.
+        - average_rating (float): The average rating of the restaurant.
+        - pricing_category_eval (str or None): The evaluation of the pricing category for the restaurant.
+
+    Methods:
+        - get_created_by(obj: Restaurant) -> int or None: Returns the ID of the user who created the restaurant.
+        - get_average_rating(obj: Restaurant) -> float: Returns the average rating of the restaurant.
+        - get_pricing_category_eval(obj: Restaurant) -> str or None: Returns the evaluation of the pricing category.
+
+    Meta:
+        - model (Restaurant): The Restaurant model.
+        - fields (list): List of fields to include in the serialized output.
+    """
     created_by = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
     pricing_category_eval = serializers.SerializerMethodField()
 
-    def get_created_by(self, obj: Restaurant) -> str or None:
-        return obj.created_by.username if obj.created_by else None
+    def get_created_by(self, obj: Restaurant) -> int or None:
+        return obj.created_by.id if obj.created_by else None
 
     def get_average_rating(self, obj: Restaurant) -> float:
         return obj.average_rating()
@@ -88,68 +105,11 @@ class ReviewSerializer(ModelSerializer):
     """
     Serializer for the Review model.
 
-    This serializer extends the ModelSerializer from rest_framework and
-    is used to serialize/deserialize Review model instances.
-
-    Attributes:
-        customer (CharField): A read-only field representing the username of the
-            customer who submitted the review.
-        restaurant (CharField): A read-only field representing the name of the
-            restaurant being reviewed.
-
-    Methods:
-        get_customer(obj: Review) -> str or None:
-            Custom method to get the username of the customer who submitted the review.
-
-        get_restaurant(obj: Review) -> str or None:
-            Custom method to get the name of the restaurant being reviewed.
-
     Meta:
-        model (type): The model class to be serialized/deserialized.
-        fields (list or tuple): The fields to include in the serialization.
-
+        - model (Review): The Review model.
+        - fields (str or list): Fields to include in the serialized output. Use '__all__' to include all fields.
     """
-
-    customer = serializers.CharField(source='customer.username', read_only=True)
-    restaurant = serializers.CharField(source='restaurant.name', read_only=True)
-
-    def get_customer(self, obj: Review) -> str or None:
-        """
-        Get the username of the customer who submitted the review.
-
-        Args:
-            obj (Review): The Review instance.
-
-        Returns:
-            str or None: The username of the customer who submitted the review,
-            or None if no customer is associated.
-
-        """
-        return obj.customer.username if obj.customer else None
-
-    def get_restaurant(self, obj: Review) -> str or None:
-        """
-        Get the name of the restaurant being reviewed.
-
-        Args:
-            obj (Review): The Review instance.
-
-        Returns:
-            str or None: The name of the restaurant being reviewed,
-            or None if no restaurant is associated.
-
-        """
-        return obj.restaurant.name if obj.restaurant else None
-
     class Meta:
-        """
-        Metadata class for the ReviewSerializer.
-
-        Attributes:
-            model (type): The model class to be serialized/deserialized.
-            fields (list or tuple): The fields to include in the serialization.
-
-        """
         model = Review
         fields = '__all__'
 
@@ -158,58 +118,23 @@ class VisitSerializer(ModelSerializer):
     """
     Serializer for the Visit model.
 
-    This serializer extends the ModelSerializer from rest_framework and
-    is used to serialize/deserialize Visit model instances.
-
     Attributes:
-        customer (CharField): A read-only field representing the username of the
-            customer associated with the visit.
-        restaurant (CharField): A read-only field representing the name of the
-            restaurant visited during the visit.
+        - total_spending_at_restaurant (float): The total spending of the customer at the visited restaurant.
 
     Methods:
-        get_customer(obj: Visit) -> str or None:
-            Custom method to get the username of the customer associated with the visit.
-
-        get_restaurant(obj: Visit) -> str or None:
-            Custom method to get the name of the restaurant visited during the visit.
+        - get_total_spending_at_restaurant(obj: Visit) -> float: Returns the total spending at the visited restaurant.
 
     Meta:
-        model (type): The model class to be serialized/deserialized.
-        fields (list or tuple): The fields to include in the serialization.
-
+        - model (Visit): The Visit model.
+        - fields (list): List of fields to include in the serialized output.
     """
+    total_spending_at_restaurant = serializers.SerializerMethodField()
 
-    customer = serializers.CharField(source='customer.username', read_only=True)
-    restaurant = serializers.CharField(source='restaurant.name', read_only=True)
-
-    def get_customer(self, obj: Visit) -> str or None:
-        """
-        Get the username of the customer associated with the visit.
-
-        Args:
-            obj (Visit): The Visit instance.
-
-        Returns:
-            str or None: The username of the customer associated with the visit,
-            or None if no customer is associated.
-
-        """
-        return obj.customer.username if obj.customer else None
-
-    def get_restaurant(self, obj: Visit) -> str or None:
-        """
-        Get the name of the restaurant visited during the visit.
-
-        Args:
-            obj (Visit): The Visit instance.
-
-        Returns:
-            str or None: The name of the restaurant visited during the visit,
-            or None if no restaurant is associated.
-
-        """
-        return obj.restaurant.name if obj.restaurant else None
+    def get_total_spending_at_restaurant(self, obj: Visit) -> float:
+        user = obj.customer
+        restaurant = obj.restaurant
+        total_spending = calculate_user_total_spending_at_restaurant(user, restaurant)
+        return total_spending
 
     class Meta:
         """
@@ -221,4 +146,4 @@ class VisitSerializer(ModelSerializer):
 
         """
         model = Visit
-        fields = ['id', 'date', 'spending', 'restaurant', 'customer']
+        fields = ['id', 'date', 'spending', 'restaurant', 'customer', 'total_spending_at_restaurant']
