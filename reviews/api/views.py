@@ -5,6 +5,8 @@ from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework import status
+
 
 from reviews.forms import RestaurantForm, ReviewForm, VisitForm
 from reviews.models import Customer, Restaurant, Review, Visit
@@ -76,17 +78,41 @@ def get_customers(request, username=None):
 
 
 # restaurant
+@api_view(['GET'])
+def get_restaurants(request, restaurant_id=None):
+    if restaurant_id:
+        restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+        serializer = RestaurantSerializer(restaurant, many=False)
+    else:
+        restaurant_name = request.GET.get('restaurant_name', '')
+        query_params = {}
+
+        if restaurant_name:
+            query_params['name__icontains'] = restaurant_name
+
+        restaurants = Restaurant.objects.filter(**query_params)
+        serializer = RestaurantSerializer(restaurants, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 def create_restaurant(request):
     if request.method == 'POST':
-        serializer = RestaurantSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors)
+        if not request.user.is_authenticated:
+            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
 
+        form = RestaurantForm(request.POST)
+        if form.is_valid():
+            restaurant = form.save(commit=False)
+            restaurant.created_by = request.user
+            restaurant.save()
+
+            serializer = RestaurantSerializer(restaurant)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
     # restaurant_name = request.GET.get('restaurant_name', '')

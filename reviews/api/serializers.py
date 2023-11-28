@@ -68,18 +68,12 @@ class CustomerSerializer(ModelSerializer):
 class RestaurantSerializer(serializers.ModelSerializer):
     created_by = serializers.SerializerMethodField()
 
-    def create(self, validated_data):
-        created_by = self.context['request'].user if 'request' in self.context else None
-        validated_data['created_by'] = created_by
-        return Restaurant.objects.create(**validated_data)
-
     def get_created_by(self, obj: Restaurant) -> str or None:
         return obj.created_by.username if obj.created_by else None
 
     class Meta:
         model = Restaurant
         fields = ['id', 'name', 'cuisine', 'address', 'created_by']
-
 
 
 class ReviewSerializer(ModelSerializer):

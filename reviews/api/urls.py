@@ -11,6 +11,8 @@ urlpatterns = [
     path('customers/', views.get_customers, name='customers'),
     path('customers/<str:username>/', views.get_customers, name='customer'),
 
+    path('restaurants/', views.get_restaurants, name='restaurants'),
+    path('restaurants/<int:restaurant_id>/', views.get_restaurants, name='restaurant'),
     path('restaurants/create-restaurant', views.create_restaurant, name='create-restaurant'),
     #
     # path('restaurants/', views.getRestaurants, name='restaurant-list'),
