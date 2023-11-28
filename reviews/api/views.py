@@ -79,21 +79,48 @@ def get_customers(request, username=None):
 
 # restaurant
 @api_view(['GET'])
-def get_restaurants(request, restaurant_id=None):
-    if restaurant_id:
-        restaurant = get_object_or_404(Restaurant, id=restaurant_id)
-        serializer = RestaurantSerializer(restaurant, many=False)
-    else:
-        restaurant_name = request.GET.get('restaurant_name', '')
-        query_params = {}
+def get_restaurants(request):
+    restaurant_name = request.GET.get('restaurant_name', '')
+    query_params = {}
 
-        if restaurant_name:
-            query_params['name__icontains'] = restaurant_name
+    if restaurant_name:
+        query_params['name__icontains'] = restaurant_name
 
-        restaurants = Restaurant.objects.filter(**query_params)
-        serializer = RestaurantSerializer(restaurants, many=True)
+    restaurants = Restaurant.objects.filter(**query_params)
+    serializer = RestaurantSerializer(restaurants, many=True)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@authentication_classes([JWTAuthentication])
+def restaurant_view(request, restaurant_id=None):
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+
+    # GET
+    if request.method == 'GET':
+        serializer = RestaurantSerializer(restaurant, many=False)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # PUT
+    if request.method == 'PUT':
+        if not request.user.is_authenticated:
+            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        form = RestaurantForm(request.PUT, instance=restaurant)
+
+        if form.is_valid():
+            updated_restaurant = form.save()
+            serializer = RestaurantSerializer(updated_restaurant)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # DELETE
+    if request.method == 'DELETE':
+        restaurant.delete()
+        return Response({"detail": "Restaurant successfully deleted."}, status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['POST'])
@@ -115,27 +142,7 @@ def create_restaurant(request):
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-    # restaurant_name = request.GET.get('restaurant_name', '')
-#
-#     query_params = {}
-#
-#     if restaurant_name:
-#         query_params['restaurant__name__icontains'] = restaurant_name
-#
-#     restaurants = Restaurant.objects.filter(**query_params)
-#     serializer = RestaurantSerializer(restaurants, many=True)
-#
-#     return Response(serializer.data)
-#
-#
-# @api_view(['GET'])
-# def getRestaurant(request, restaurant_id: int):
-#     restaurant = get_object_or_404(Restaurant, id=restaurant_id)
-#     serializer = RestaurantSerializer(restaurant, many=False)
-#
-#     return Response(serializer.data)
-#
-#
+
 # # review
 # @api_view(['GET'])
 # def getReviews(request):
