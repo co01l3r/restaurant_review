@@ -66,53 +66,20 @@ class CustomerSerializer(ModelSerializer):
 
 
 class RestaurantSerializer(serializers.ModelSerializer):
-    """
-    Serializer for the Restaurant model.
-
-    This serializer extends the ModelSerializer from rest_framework and
-    is used to serialize/deserialize Restaurant model instances.
-
-    Attributes:
-        get_created_by (SerializerMethodField): A custom method field to get the username
-            of the user who created the restaurant.
-
-    Methods:
-        get_created_by(obj: Restaurant) -> str or None:
-            Custom method to get the username of the user who created the restaurant.
-
-    Meta:
-        model (type): The model class to be serialized/deserialized.
-        fields (list or tuple): The fields to include in the serialization.
-
-    """
-
     created_by = serializers.SerializerMethodField()
 
+    def create(self, validated_data):
+        created_by = self.context['request'].user if 'request' in self.context else None
+        validated_data['created_by'] = created_by
+        return Restaurant.objects.create(**validated_data)
+
     def get_created_by(self, obj: Restaurant) -> str or None:
-        """
-        Get the username of the user who created the restaurant.
-
-        Args:
-            obj (Restaurant): The Restaurant instance.
-
-        Returns:
-            str or None: The username of the user who created the restaurant,
-            or None if no user is associated.
-
-        """
         return obj.created_by.username if obj.created_by else None
 
     class Meta:
-        """
-        Metadata class for the RestaurantSerializer.
-
-        Attributes:
-            model (type): The model class to be serialized/deserialized.
-            fields (list or tuple): The fields to include in the serialization.
-
-        """
         model = Restaurant
         fields = ['id', 'name', 'cuisine', 'address', 'created_by']
+
 
 
 class ReviewSerializer(ModelSerializer):
