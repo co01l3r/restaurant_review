@@ -4,7 +4,7 @@ from . import views
 from reviews.api.views import MyTokenObtainPairView
 
 urlpatterns = [
-    path('', views.getRoutes),
+    path('', views.get_routes),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', MyTokenObtainPairView.as_view(), name='token_refresh'),
 

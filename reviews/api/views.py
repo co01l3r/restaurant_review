@@ -24,7 +24,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 # all endpoints
 @api_view(['GET'])
-def getRoutes(request):
+def get_routes(request):
     """
     Get a list of available API endpoints.
 
@@ -45,7 +45,6 @@ def getRoutes(request):
         '/api/reviews/',
         '/api/reviews/<int:review_id>',
         '/api/reviews/create-review',
-        '/api/reviews/?username=<str:username>'
 
         '/api/visits/',
         '/api/visits/<int:visit_id>',
