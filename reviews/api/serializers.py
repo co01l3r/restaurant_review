@@ -1,3 +1,4 @@
+from decimal import Decimal
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
@@ -32,8 +33,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         """
         token = super().get_token(user)
-        token['username'] = user.username
-        token['email'] = user.email
 
         return token
 
@@ -65,7 +64,7 @@ class CustomerSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class RestaurantSerializer(serializers.ModelSerializer):
+class RestaurantSerializer(ModelSerializer):
     """
     Serializer for the Restaurant model.
 
@@ -74,24 +73,16 @@ class RestaurantSerializer(serializers.ModelSerializer):
         - average_rating (float): The average rating of the restaurant.
         - pricing_category_eval (str or None): The evaluation of the pricing category for the restaurant.
 
-    Methods:
-        - get_created_by(obj: Restaurant) -> int or None: Returns the ID of the user who created the restaurant.
-        - get_average_rating(obj: Restaurant) -> float: Returns the average rating of the restaurant.
-        - get_pricing_category_eval(obj: Restaurant) -> str or None: Returns the evaluation of the pricing category.
-
     Meta:
         - model (Restaurant): The Restaurant model.
         - fields (list): List of fields to include in the serialized output.
     """
     created_by = serializers.SerializerMethodField()
-    average_rating = serializers.SerializerMethodField()
     pricing_category_eval = serializers.SerializerMethodField()
+    average_rating = serializers.FloatField(read_only=True)
 
     def get_created_by(self, obj: Restaurant) -> int or None:
         return obj.created_by.id if obj.created_by else None
-
-    def get_average_rating(self, obj: Restaurant) -> float:
-        return obj.average_rating()
 
     def get_pricing_category_eval(self, obj: Restaurant) -> str or None:
         return obj.get_restaurant_pricing_category_eval()
@@ -111,7 +102,7 @@ class ReviewSerializer(ModelSerializer):
     """
     class Meta:
         model = Review
-        fields = '__all__'
+        fields = ['id', 'restaurant', 'customer', 'created', 'rating', 'pricing', 'comment']
 
 
 class VisitSerializer(ModelSerializer):
@@ -130,7 +121,7 @@ class VisitSerializer(ModelSerializer):
     """
     total_spending_at_restaurant = serializers.SerializerMethodField()
 
-    def get_total_spending_at_restaurant(self, obj: Visit) -> float:
+    def get_total_spending_at_restaurant(self, obj: Visit) -> Decimal:
         user = obj.customer
         restaurant = obj.restaurant
         total_spending = calculate_user_total_spending_at_restaurant(user, restaurant)

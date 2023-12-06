@@ -91,6 +91,7 @@ class Restaurant(models.Model):
         """
         return self.name
 
+    @property
     def average_rating(self) -> float:
         """
         Calculates and returns the average rating of the restaurant.
@@ -102,7 +103,9 @@ class Restaurant(models.Model):
         try:
             reviews = Review.objects.filter(restaurant=self)
             return reviews.aggregate(Avg('rating'))['rating__avg'] or 0
-        except Exception as e:
+        except Review.DoesNotExist:
+            return 0
+        except Review.MultipleObjectsReturned:
             return 0
 
     def get_restaurant_pricing_category_eval(self) -> str or None:

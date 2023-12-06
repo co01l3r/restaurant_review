@@ -1,9 +1,9 @@
+from decimal import Decimal
 from django.contrib import messages
-from django.contrib.auth import get_user_model
-from .models import Visit, Restaurant
+from .models import Visit, Restaurant, Customer
 
 
-def count_user_visits_to_restaurant(user: get_user_model(), restaurant: Restaurant) -> int:
+def count_user_visits_to_restaurant(user: Customer, restaurant: Restaurant) -> int:
     """
     Count the number of visits by a user to a specific restaurant.
 
@@ -25,11 +25,11 @@ def count_user_visits_to_restaurant(user: get_user_model(), restaurant: Restaura
         messages.error("Error counting visits. Please try again.")
         return 0
     except Exception as e:
-        messages.error("An unexpected error occurred. Please try again later.")
+        messages.error(f"An unexpected error occurred: {e}. Please try again later.")
         return 0
 
 
-def calculate_user_total_spending_at_restaurant(user: get_user_model(), restaurant: Restaurant) -> float:
+def calculate_user_total_spending_at_restaurant(user: Customer, restaurant: Restaurant) -> Decimal:
     """
     Calculate the total spending by a user at a specific restaurant.
 

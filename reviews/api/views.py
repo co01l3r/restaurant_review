@@ -6,8 +6,6 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import status
 
-
-from reviews.forms import RestaurantForm, ReviewForm, VisitForm
 from reviews.models import Customer, Restaurant, Review, Visit
 from .serializers import (
     MyTokenObtainPairSerializer,
@@ -110,14 +108,13 @@ def restaurant_view(request, restaurant_id=None):
         - DELETE: Delete a restaurant.
 
     Returns:
-    - Response: JSON response containing restaurant information or operation result.
+        Response: JSON response containing restaurant information or operation result.
     """
     restaurant = get_object_or_404(Restaurant, id=restaurant_id)
 
     # GET
     if request.method == 'GET':
         serializer = RestaurantSerializer(restaurant, many=False)
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # PUT
@@ -125,14 +122,24 @@ def restaurant_view(request, restaurant_id=None):
         if not request.user.is_authenticated:
             return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        form = RestaurantForm(request.PUT, instance=restaurant)
+        # Data from the request
+        data = request.data
 
-        if form.is_valid():
-            updated_restaurant = form.save()
-            serializer = RestaurantSerializer(updated_restaurant)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Validate the data
+        required_fields = ['name', 'cuisine', 'address']
+        for field in required_fields:
+            if field not in data:
+                return Response({"detail": f"Missing required field '{field}' in the request data."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Update the restaurant
+        restaurant.name = data['name']
+        restaurant.cuisine = data['cuisine']
+        restaurant.address = data['address']
+
+        restaurant.save()
+
+        serializer = RestaurantSerializer(restaurant)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     # DELETE
     if request.method == 'DELETE':
@@ -156,16 +163,28 @@ def create_restaurant(request):
         if not request.user.is_authenticated:
             return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        form = RestaurantForm(request.POST)
-        if form.is_valid():
-            restaurant = form.save(commit=False)
-            restaurant.created_by = request.user
-            restaurant.save()
+        # Data from the request
+        data = request.data
 
-            serializer = RestaurantSerializer(restaurant)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Validate the data
+        required_fields = ['name', 'cuisine', 'address']
+        for field in required_fields:
+            if field not in data:
+                return Response({"detail": f"Missing required field '{field}' in the request data."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create a new restaurant
+        restaurant = Restaurant(
+            name=data['name'],
+            cuisine=data['cuisine'],
+            address=data['address'],
+            created_by=request.user
+        )
+        restaurant.save()
+
+        serializer = RestaurantSerializer(restaurant)
+        response_data = serializer.data
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 # review
@@ -228,14 +247,19 @@ def review_view(request, review_id=None):
         if not request.user.is_authenticated:
             return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        form = ReviewForm(request.PUT, instance=review)
+        # Data from the request
+        data = request.data
 
-        if form.is_valid():
-            updated_review = form.save()
-            serializer = ReviewSerializer(updated_review)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Validate the data
+        if 'rating' not in data or not isinstance(data['rating'], int):
+            return Response({"detail": "Invalid or missing 'rating' in the request data."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Update the review
+        review.rating = data['rating']
+        review.save()
+
+        serializer = ReviewSerializer(review)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     # DELETE
     if request.method == 'DELETE':
@@ -259,16 +283,25 @@ def create_review(request):
         if not request.user.is_authenticated:
             return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        form = ReviewForm(request.POST)
-        if form.is_valid():
-            review = form.save(commit=False)
-            review.created_by = request.user
-            review.save()
+        # Data from the request
+        data = request.data
 
-            serializer = ReviewSerializer(review)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Validate the data
+        required_fields = ['rating', 'pricing']
+        for field in required_fields:
+            if field not in data:
+                return Response({"detail": f"Missing required field '{field}' in the request data."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create a new review
+        review = Review(
+            rating=data['rating'],
+            pricing=data['pricing'],
+            created_by=request.user
+        )
+        review.save()
+
+        serializer = ReviewSerializer(review)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 # visit
@@ -312,7 +345,6 @@ def visit_view(request, visit_id=None):
     # GET
     if request.method == 'GET':
         serializer = VisitSerializer(visit, many=False)
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # PUT
@@ -320,14 +352,24 @@ def visit_view(request, visit_id=None):
         if not request.user.is_authenticated:
             return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        form = VisitForm(request.PUT, instance=visit)
+        # Data from the request
+        data = request.data
 
-        if form.is_valid():
-            updated_visit = form.save()
-            serializer = ReviewSerializer(updated_visit)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Validate the data
+        required_fields = ['customer', 'restaurant', 'date']
+        for field in required_fields:
+            if field not in data:
+                return Response({"detail": f"Missing required field '{field}' in the request data."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Update the visit
+        visit.customer = data['customer']
+        visit.restaurant = data['restaurant']
+        visit.date = data['date']
+
+        visit.save()
+
+        serializer = VisitSerializer(visit)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     # DELETE
     if request.method == 'DELETE':
@@ -351,13 +393,23 @@ def create_visit(request):
         if not request.user.is_authenticated:
             return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        form = VisitForm(request.POST)
-        if form.is_valid():
-            visit = form.save(commit=False)
-            visit.created_by = request.user
-            visit.save()
+        # Data from the request
+        data = request.data
 
-            serializer = VisitSerializer(visit)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Validate the data
+        required_fields = ['customer', 'restaurant', 'date']
+        for field in required_fields:
+            if field not in data:
+                return Response({"detail": f"Missing required field '{field}' in the request data."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create a new visit
+        visit = Visit(
+            customer=data['customer'],
+            restaurant=data['restaurant'],
+            date=data['date'],
+            created_by=request.user
+        )
+        visit.save()
+
+        serializer = VisitSerializer(visit)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
