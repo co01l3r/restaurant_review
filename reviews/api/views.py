@@ -288,7 +288,7 @@ def create_review(request):
         data = request.data
 
         # Validate the data
-        required_fields = ['restaurant', 'rating', 'pricing']
+        required_fields = ['restaurant', 'rating', 'pricing', 'comment']
         for field in required_fields:
             if field not in data:
                 return Response({"detail": f"Missing required field '{field}' in the request data."}, status=status.HTTP_400_BAD_REQUEST)
@@ -298,6 +298,7 @@ def create_review(request):
             restaurant=data['restaurant'],
             rating=data['rating'],
             pricing=data['pricing'],
+            comment=data['comment'],
             created_by=request.user
         )
         review.save()

@@ -98,7 +98,7 @@ class ReviewSerializer(ModelSerializer):
 
     Meta:
         - model (Review): The Review model.
-        - fields (str or list): Fields to include in the serialized output. Use '__all__' to include all fields.
+        - fields (list): List of fields to include in the serialized output.
     """
     class Meta:
         model = Review
