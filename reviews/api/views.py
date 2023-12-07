@@ -299,7 +299,7 @@ def create_review(request):
             rating=data['rating'],
             pricing=data['pricing'],
             comment=data['comment'],
-            created_by=request.user
+            customer=request.user
         )
         review.save()
 
@@ -368,7 +368,7 @@ def visit_view(request, visit_id=None):
         visit.customer = request.user
         visit.restaurant = data['restaurant']
         visit.date = data['date']
-        visit.restaurant = data['spending']
+        visit.spending = data['spending']
 
         visit.save()
 
