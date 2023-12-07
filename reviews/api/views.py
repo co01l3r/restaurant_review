@@ -356,15 +356,16 @@ def visit_view(request, visit_id=None):
         data = request.data
 
         # Validate the data
-        required_fields = ['customer', 'restaurant', 'date']
+        required_fields = ['restaurant', 'date', 'spending']
         for field in required_fields:
             if field not in data:
                 return Response({"detail": f"Missing required field '{field}' in the request data."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Update the visit
-        visit.customer = data['customer']
+        visit.customer = request.user
         visit.restaurant = data['restaurant']
         visit.date = data['date']
+        visit.restaurant = data['spending']
 
         visit.save()
 
@@ -397,17 +398,17 @@ def create_visit(request):
         data = request.data
 
         # Validate the data
-        required_fields = ['customer', 'restaurant', 'date']
+        required_fields = ['restaurant', 'date', 'spending']
         for field in required_fields:
             if field not in data:
                 return Response({"detail": f"Missing required field '{field}' in the request data."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Create a new visit
         visit = Visit(
-            customer=data['customer'],
+            customer=request.user,
             restaurant=data['restaurant'],
             date=data['date'],
-            created_by=request.user
+            spending=data['spending']
         )
         visit.save()
 
