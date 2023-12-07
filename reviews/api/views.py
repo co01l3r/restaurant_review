@@ -135,6 +135,7 @@ def restaurant_view(request, restaurant_id=None):
         restaurant.name = data['name']
         restaurant.cuisine = data['cuisine']
         restaurant.address = data['address']
+        restaurant.created_by = request.user
 
         restaurant.save()
 
@@ -287,13 +288,14 @@ def create_review(request):
         data = request.data
 
         # Validate the data
-        required_fields = ['rating', 'pricing']
+        required_fields = ['restaurant', 'rating', 'pricing']
         for field in required_fields:
             if field not in data:
                 return Response({"detail": f"Missing required field '{field}' in the request data."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Create a new review
         review = Review(
+            restaurant=data['restaurant'],
             rating=data['rating'],
             pricing=data['pricing'],
             created_by=request.user
