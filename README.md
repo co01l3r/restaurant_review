@@ -43,14 +43,11 @@ available API endpoints:
 
         '/api/restaurants',
         '/api/restaurants/<int:restaurant_id>',
-        '/api/restaurants/create-restaurant',
 
         '/api/reviews/',
         '/api/reviews/<int:review_id>',
-        '/api/reviews/create-review',
 
         '/api/visits/',
         '/api/visits/<int:visit_id>',
-        '/api/visits/create-visit',
 ]
 ```
