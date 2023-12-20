@@ -15,6 +15,7 @@ from .serializers import (
     VisitSerializer,
 )
 
+
 # jwt
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
@@ -38,15 +39,12 @@ def get_routes(request):
 
         '/api/restaurants',
         '/api/restaurants/<int:restaurant_id>',
-        '/api/restaurants/create-restaurant',
 
         '/api/reviews/',
         '/api/reviews/<int:review_id>',
-        '/api/reviews/create-review',
 
         '/api/visits/',
         '/api/visits/<int:visit_id>',
-        '/api/visits/create-visit',
     ]
     return Response(routes)
 
@@ -72,13 +70,24 @@ def get_customers(request, username=None):
 
 
 # restaurant
-@api_view(['GET'])
-def get_restaurants(request):
+@api_view(['GET', 'POST'])
+@authentication_classes([JWTAuthentication])
+def restaurants_view(request):
     """
-    Retrieve restaurant information.
+    API endpoint for managing restaurants.
 
-    Returns:
-    - Response: JSON response containing restaurant information.
+    GET:
+        List all restaurants based on optional query parameter 'restaurant_name'.
+
+    POST:
+        Create a new restaurant with the provided data.
+
+    Query Parameters:
+    - restaurant_name (optional): Filters restaurants by name using case-insensitive partial matching.
+
+    Note:
+    - 'average_rating' set to 0 for new restaurants.
+    - 'created_by' set to the user making the request for new restaurants.
     """
     restaurant_name = request.GET.get('restaurant_name', '')
     query_params = {}
@@ -86,29 +95,45 @@ def get_restaurants(request):
     if restaurant_name:
         query_params['name__icontains'] = restaurant_name
 
-    restaurants = Restaurant.objects.filter(**query_params)
-    serializer = RestaurantSerializer(restaurants, many=True)
+    # GET (list all)
+    if request.method == 'GET':
+        restaurants = Restaurant.objects.filter(**query_params)
+        serializer = RestaurantSerializer(restaurants, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    # POST (create new)
+    if request.method == 'POST':
+        data = {**request.data, 'average_rating': 0, 'created_by': request.user}
+        serializer = RestaurantSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
 @authentication_classes([JWTAuthentication])
-def restaurant_view(request, restaurant_id=None):
+def restaurant_detail_view(request, restaurant_id=None):
     """
-    Perform operations on a specific restaurant.
+    API endpoint for managing a specific restaurant.
+
+    GET:
+        Retrieve details of a specific restaurant.
+
+    PUT:
+        Update the details of a specific restaurant.
+
+    DELETE:
+        Delete a specific restaurant.
 
     Parameters:
-        - request (Request): The HTTP request object.
-        - restaurant_id (int, optional): The ID of the restaurant.
+    - restaurant_id: ID of the restaurant to be retrieved, updated, or deleted.
 
-    Methods:
-        - GET: Retrieve details of a restaurant.
-        - PUT: Update an existing restaurant.
-        - DELETE: Delete a restaurant.
-
-    Returns:
-        Response: JSON response containing restaurant information or operation result.
+    Note:
+    - Ensure the provided 'restaurant_id' corresponds to an existing restaurant.
+    - PUT request updates fields provided in the request body.
+    - DELETE request returns a success message upon successful deletion.
     """
     restaurant = get_object_or_404(Restaurant, id=restaurant_id)
 
@@ -119,28 +144,12 @@ def restaurant_view(request, restaurant_id=None):
 
     # PUT
     if request.method == 'PUT':
-        if not request.user.is_authenticated:
-            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Data from the request
-        data = request.data
-
-        # Validate the data
-        required_fields = ['name', 'cuisine', 'address']
-        for field in required_fields:
-            if field not in data:
-                return Response({"detail": f"Missing required field '{field}' in the request data."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Update the restaurant
-        restaurant.name = data['name']
-        restaurant.cuisine = data['cuisine']
-        restaurant.address = data['address']
-        restaurant.created_by = request.user
-
-        restaurant.save()
-
-        serializer = RestaurantSerializer(restaurant)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = RestaurantSerializer(restaurant, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # DELETE
     if request.method == 'DELETE':
@@ -148,61 +157,26 @@ def restaurant_view(request, restaurant_id=None):
         return Response({"detail": "Restaurant successfully deleted."}, status=status.HTTP_204_NO_CONTENT)
 
 
-@api_view(['POST'])
-@authentication_classes([JWTAuthentication])
-def create_restaurant(request):
-    """
-    Create a new restaurant.
-
-    Parameters:
-    - request (Request): The HTTP request object.
-
-    Returns:
-    - Response: JSON response containing information about the created restaurant.
-    """
-    if request.method == 'POST':
-        if not request.user.is_authenticated:
-            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Data from the request
-        data = request.data
-
-        # Validate the data
-        required_fields = ['name', 'cuisine', 'address']
-        for field in required_fields:
-            if field not in data:
-                return Response({"detail": f"Missing required field '{field}' in the request data."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Create a new restaurant
-        restaurant = Restaurant(
-            name=data['name'],
-            cuisine=data['cuisine'],
-            address=data['address'],
-            created_by=request.user
-        )
-        restaurant.save()
-
-        serializer = RestaurantSerializer(restaurant)
-        response_data = serializer.data
-
-        return Response(response_data, status=status.HTTP_201_CREATED)
-
-
 # review
-@api_view(['GET'])
-def get_reviews(request):
+@api_view(['GET', 'POST'])
+@authentication_classes([JWTAuthentication])
+def reviews_view(request):
     """
-    Get a list of reviews based on an optional username filter.
+    API endpoint for managing reviews.
 
-    Parameters:
-        - request (Request): The HTTP GET request object.
+    GET:
+        List all reviews based on optional query parameter 'username'.
 
-    Returns:
-        Response: A JSON response with a list of serialized reviews.
+    POST:
+        Create a new review with the provided data.
 
-    Example:
-        To get reviews for a specific user:
-        GET /api/reviews?username=johndoe
+    Query Parameters:
+    - username (optional): Filters reviews by the username of the customer.
+
+    Note:
+    - 'customer' field automatically set to the authenticated user for new reviews.
+    - Ensure 'rating' and 'comment' are provided in the request body for POST requests.
+    - Returns a success message upon successful review creation (POST).
     """
     username = request.GET.get('username', '')
 
@@ -211,29 +185,45 @@ def get_reviews(request):
     if username:
         query_params['customer__username__icontains'] = username
 
-    reviews = Review.objects.filter(**query_params)
-    serializer = ReviewSerializer(reviews, many=True)
+    # GET (list all)
+    if request.method == 'GET':
+        reviews = Review.objects.filter(**query_params)
+        serializer = ReviewSerializer(reviews, many=True)
+        return Response(serializer.data)
 
-    return Response(serializer.data)
+    # POST (create new)
+    if request.method == 'POST':
+        data = {**request.data, 'customer': request.user}
+        serializer = ReviewSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
 @authentication_classes([JWTAuthentication])
-def review_view(request, review_id=None):
+def review_detail_view(request, review_id=None):
     """
-    Manage a single review.
+    API endpoint for managing a specific review.
+
+    GET:
+        Retrieve details of a specific review.
+
+    PUT:
+        Update the details of a specific review.
+
+    DELETE:
+        Delete a specific review.
 
     Parameters:
-        - request (Request): The HTTP request object.
-        - review_id (int, optional): The ID of the review.
+    - review_id: ID of the review to be retrieved, updated, or deleted.
 
-    Methods:
-        - GET: Retrieve details of a review.
-        - PUT: Update an existing review.
-        - DELETE: Delete a review.
-
-    Returns:
-        Response: JSON response with review details or status messages.
+    Note:
+    - Ensure the provided 'review_id' corresponds to an existing review.
+    - PUT request updates fields provided in the request body.
+    - DELETE request returns a success message upon successful deletion.
     """
     review = get_object_or_404(Review, id=review_id)
 
@@ -245,22 +235,12 @@ def review_view(request, review_id=None):
 
     # PUT
     if request.method == 'PUT':
-        if not request.user.is_authenticated:
-            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Data from the request
-        data = request.data
-
-        # Validate the data
-        if 'rating' not in data or not isinstance(data['rating'], int):
-            return Response({"detail": "Invalid or missing 'rating' in the request data."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Update the review
-        review.rating = data['rating']
-        review.save()
-
-        serializer = ReviewSerializer(review)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = ReviewSerializer(review, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # DELETE
     if request.method == 'DELETE':
@@ -268,80 +248,63 @@ def review_view(request, review_id=None):
         return Response({"detail": "Restaurant review successfully deleted."}, status=status.HTTP_204_NO_CONTENT)
 
 
-@api_view(['POST'])
-@authentication_classes([JWTAuthentication])
-def create_review(request):
-    """
-    Create a new review.
-
-    Parameters:
-        - request (Request): The HTTP POST request object.
-
-    Returns:
-        Response: JSON response with the newly created review details or validation errors.
-    """
-    if request.method == 'POST':
-        if not request.user.is_authenticated:
-            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Data from the request
-        data = request.data
-
-        # Validate the data
-        required_fields = ['restaurant', 'rating', 'pricing', 'comment']
-        for field in required_fields:
-            if field not in data:
-                return Response({"detail": f"Missing required field '{field}' in the request data."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Create a new review
-        review = Review(
-            restaurant=data['restaurant'],
-            rating=data['rating'],
-            pricing=data['pricing'],
-            comment=data['comment'],
-            customer=request.user
-        )
-        review.save()
-
-        serializer = ReviewSerializer(review)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
 # visit
-@api_view(['GET'])
-def get_visits(request):
+@api_view(['GET', 'POST'])
+@authentication_classes([JWTAuthentication])
+def visits_view(request):
     """
-    Retrieve a list of visits.
+    API endpoint for managing customer visits.
 
-    Parameters:
-        - request (Request): The HTTP GET request object.
+    GET:
+        List all customer visits.
 
-    Returns:
-        Response: JSON response with a list of serialized visits.
+    POST:
+        Create a new visit record for the authenticated customer.
+
+    Note:
+    - 'customer' field automatically set to the authenticated user for new visits.
+    - Ensure 'date' and 'restaurant' are provided in the request body for POST requests.
+    - Returns a success message upon successful visit creation (POST).
     """
-    visits = Visit.objects.all()
-    serializer = VisitSerializer(visits, many=True)
+    # GET (list all)
+    if request.method == 'GET':
+        visits = Visit.objects.all()
+        serializer = VisitSerializer(visits, many=True)
+        return Response(serializer.data)
 
-    return Response(serializer.data)
+    # POST (create new)
+    if request.method == 'POST':
+        data = {**request.data, 'customer': request.user}
+        serializer = VisitSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
 @authentication_classes([JWTAuthentication])
-def visit_view(request, visit_id=None):
+def visit_detail_view(request, visit_id=None):
     """
-    Manage a single restaurant visit.
+    API endpoint for managing a specific customer visit.
+
+    GET:
+        Retrieve details of a specific customer visit.
+
+    PUT:
+        Update the details of a specific customer visit.
+
+    DELETE:
+        Delete a specific customer visit.
 
     Parameters:
-        - request (Request): The HTTP request object.
-        - visit_id (int, optional): The ID of the visit.
+    - visit_id: ID of the visit to be retrieved, updated, or deleted.
 
-    Methods:
-        - GET: Retrieve details of a visit.
-        - PUT: Update an existing visit.
-        - DELETE: Delete a visit.
-
-    Returns:
-        Response: JSON response with visit details or status messages.
+    Note:
+    - Ensure the provided 'visit_id' corresponds to an existing visit.
+    - PUT request updates fields provided in the request body.
+    - DELETE request returns a success message upon successful deletion.
     """
     visit = get_object_or_404(Visit, id=visit_id)
 
@@ -352,68 +315,14 @@ def visit_view(request, visit_id=None):
 
     # PUT
     if request.method == 'PUT':
-        if not request.user.is_authenticated:
-            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Data from the request
-        data = request.data
-
-        # Validate the data
-        required_fields = ['restaurant', 'date', 'spending']
-        for field in required_fields:
-            if field not in data:
-                return Response({"detail": f"Missing required field '{field}' in the request data."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Update the visit
-        visit.customer = request.user
-        visit.restaurant = data['restaurant']
-        visit.date = data['date']
-        visit.spending = data['spending']
-
-        visit.save()
-
-        serializer = VisitSerializer(visit)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = VisitSerializer(visit, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # DELETE
     if request.method == 'DELETE':
         visit.delete()
         return Response({"detail": "Restaurant visit successfully deleted."}, status=status.HTTP_204_NO_CONTENT)
-
-
-@api_view(['POST'])
-@authentication_classes([JWTAuthentication])
-def create_visit(request):
-    """
-    Create a new restaurant visit.
-
-    Parameters:
-        - request (Request): The HTTP POST request object.
-
-    Returns:
-        Response: JSON response with the newly created visit details or validation errors.
-    """
-    if request.method == 'POST':
-        if not request.user.is_authenticated:
-            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Data from the request
-        data = request.data
-
-        # Validate the data
-        required_fields = ['restaurant', 'date', 'spending']
-        for field in required_fields:
-            if field not in data:
-                return Response({"detail": f"Missing required field '{field}' in the request data."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Create a new visit
-        visit = Visit(
-            customer=request.user,
-            restaurant=data['restaurant'],
-            date=data['date'],
-            spending=data['spending']
-        )
-        visit.save()
-
-        serializer = VisitSerializer(visit)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)

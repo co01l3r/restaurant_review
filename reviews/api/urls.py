@@ -11,15 +11,12 @@ urlpatterns = [
     path('customers/', views.get_customers, name='customers'),
     path('customers/<str:username>/', views.get_customers, name='customer'),
 
-    path('restaurants/', views.get_restaurants, name='restaurants'),
-    path('restaurants/<int:restaurant_id>/', views.restaurant_view, name='restaurant'),
-    path('restaurants/create-restaurant', views.create_restaurant, name='create-restaurant'),
+    path('restaurants/', views.restaurants_view, name='restaurants'),
+    path('restaurants/<int:restaurant_id>/', views.restaurant_detail_view, name='restaurant'),
 
-    path('reviews/', views.get_reviews, name='reviews'),
-    path('reviews/<int:review_id>', views.review_view, name='review'),
-    path('reviews/create-review', views.create_review, name='create-review'),
+    path('reviews/', views.reviews_view, name='reviews'),
+    path('reviews/<int:review_id>', views.review_detail_view, name='review'),
 
-    path('visits/', views.get_visits, name='visits'),
-    path('visits/<int:visit_id>', views.visit_view, name='visit'),
-    path('visits/create-visit', views.create_visit, name='create-visit'),
+    path('visits/', views.visits_view, name='visits'),
+    path('visits/<int:visit_id>', views.visit_detail_view, name='visit'),
 ]
